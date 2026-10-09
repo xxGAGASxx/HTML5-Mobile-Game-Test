@@ -9,7 +9,7 @@ export class BootScene extends Scene {
     style: { fontFamily: 'monospace', fontSize: 48, fill: 0xf2e6c9, fontWeight: 'bold' },
   });
   private readonly subtitle = new Text({
-    text: 'M0 skeleton',
+    text: 'Loading…',
     style: { fontFamily: 'monospace', fontSize: 18, fill: 0x8fb3c4 },
   });
   private readonly marker = new Graphics().rect(-12, -12, 24, 24).fill(0xe0a050);
