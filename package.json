@@ -30,7 +30,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview --host",
     "typecheck": "tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sim": "vitest run --config scripts/vitest.sim.config.ts --silent=false"
   },
   "engines": {
     "node": ">=20"

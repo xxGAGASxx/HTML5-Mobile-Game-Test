@@ -18,6 +18,7 @@ export class Game {
     });
     parent.appendChild(this.app.canvas);
     this.app.renderer.on('resize', (w: number, h: number) => this.scene?.layout(w, h));
+    this.app.ticker.add((ticker) => this.scene?.update(ticker.deltaMS));
   }
 
   show(scene: Scene): void {
