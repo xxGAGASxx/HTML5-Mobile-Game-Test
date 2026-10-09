@@ -16,18 +16,22 @@ Goal: one region played end to end in the browser on a phone, proving the core l
 **Out (later):** relics, Captain skill tree, Stone/Renown/Relic Dust, regions 2–5, Deep Ruins,
 monetization, audio polish.
 
+**Deferred until further notice:** backend and all service SDKs (ads, IAP, analytics). Only their
+interfaces and no-op placeholders are built; see [16-deferred-integrations.md](16-deferred-integrations.md).
+
 ## Milestones
 
 | # | Milestone | Exit criteria |
 |---|---|---|
-| M0 | Project skeleton | Vite + TS + PixiJS + AnimeJS boot; DDD folder layout; CI runs tests |
+| M0 | Project skeleton | Vite + TS + PixiJS + AnimeJS boot; DDD folder layout; service ports with Noop adapters; CI runs tests |
 | M1 | Combat sandbox | Deterministic battle with golden tests; Pixi view with tweens |
 | M2 | Army & formation | Roster, drag-to-place grid, live Power |
 | M3 | Map & loop | Node map, fog, respawns, loot, Spare/Claim |
 | M4 | Economy & camp | Hire, upgrade with preview, gathering, offline return |
 | M5 | Vertical slice | Region 1 complete, tutorial, save, playtest on 3 phones |
 | M6 | Content alpha | Regions 2–3, relics, skill tree, Support role |
-| M7 | Beta | All 5 regions, Deep Ruins, ads/IAP adapter, audio |
+| M7 | Beta | All 5 regions, Deep Ruins, audio |
+| M8 | Services (deferred) | Channel chosen; real Ads/IAP/backend adapters behind existing ports |
 
 ## Open questions
 

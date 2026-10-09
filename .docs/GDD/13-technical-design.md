@@ -31,7 +31,7 @@
 | **Progression** | Levels, ranks, Captain skills | `CaptainSkillTree`, `UnitProgress` |
 | **Relics** | Inventory, crafting | `Relic`, `RelicInventory` |
 | **Narrative** | Dialogue, codex, flags | `StoryState` |
-| **Meta** | Save, settings, ads/IAP adapters | `SaveGame` |
+| **Meta** | Save, settings, entitlements; service ports (deferred, see 16) | `SaveGame` |
 
 Contexts talk through **domain events** (`BattleWon`, `UnitPersuaded`, `CurrencySpent`,
 `NodeCleared`, `FormationChanged`) on an in-process event bus; no context imports another's
@@ -43,7 +43,9 @@ internals.
 src/
   domain/<context>/        entities, value objects, domain services, events (pure TS, no Pixi)
   application/<context>/   use cases (HireUnit, StartBattle, CollectOffline)
-  infrastructure/          IndexedDB repo, clock, RNG, ad SDK adapter, asset loader
+  application/ports/       service interfaces: Ads, Store, CloudSave, Leaderboard, Analytics, RemoteConfig
+  infrastructure/          IndexedDB repo, clock, RNG, asset loader
+  infrastructure/services/ placeholder adapters (Noop*/Dev*); real SDKs later (see 16)
   presentation/            Pixi scenes, views, AnimeJS tweens, input
   data/                    units.json, enemies.json, economy.json, map/*.json
 ```
@@ -68,7 +70,8 @@ This removes the class of bug in the reference's 1.3.2326 fix [O].
 
 - Single JSON document `SaveGame` (versioned, with migrations), stored in IndexedDB, autosaved on
   every domain event batch and on `visibilitychange`.
-- Export/import as a base64 string in Settings (no backend in MVP).
+- Export/import as a base64 string in Settings. No backend for now; `CloudSaveService` is a
+  placeholder port (see [16-deferred-integrations.md](16-deferred-integrations.md)).
 - Offline time: store `lastSeenAt` (wall clock) and a monotonic play counter; reject negative gaps.
 
 ### Performance budget

@@ -9,6 +9,10 @@
 
 ## Our model [P]
 
+> **Status: DEFERRED.** No ads or IAP SDK is integrated for now. The design below is the target;
+> the code only ships the interfaces and no-op placeholders from
+> [16-deferred-integrations.md](16-deferred-integrations.md). Pearls are earned through gameplay only until then.
+
 Free-to-play, ads plus light IAP, designed so a non-paying player can finish everything.
 
 ### Rewarded ads (opt-in only, never forced)
