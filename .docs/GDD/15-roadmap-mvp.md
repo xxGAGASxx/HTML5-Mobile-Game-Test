@@ -39,7 +39,7 @@ interfaces and no-op placeholders are built; see [16-deferred-integrations.md](1
 | # | Question | Answer |
 |---|---|---|
 | 1 | Distribution channel | **Web + Mobile**: PWA and a Capacitor-wrapped app from one codebase (13) |
-| 2 | Art style | **Open.** Prototype in icon-silhouette style; style test on candidates (12) |
+| 2 | Art style | **Leaning pixel art.** References in `.docs/Art-Style/`; confirm with the style test (12) |
 | 3 | Backend | **Later.** Placeholder interfaces only (16) |
 | 4 | Title and IP | **Non-commercial.** Working title *Wreckbound*, no reuse of the reference's name or IP (01) |
 

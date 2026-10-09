@@ -9,8 +9,9 @@
 
 ## Our direction [P]
 
-> **Status: OPEN.** The art style is not chosen yet. The candidates and the selection process are
-> below; the "Visual style" section after them is the working default until we choose.
+> **Status: LEANING PIXEL ART (B).** Reference images in [`.docs/Art-Style/`](../Art-Style/README.md)
+> point to detailed pixel-art units in a 3/4 front view and an isometric pixel-art map. The final
+> pick still follows the style test below; the references are the target look for candidate B.
 
 ### Style candidates
 
