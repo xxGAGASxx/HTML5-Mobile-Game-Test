@@ -28,14 +28,21 @@ interfaces and no-op placeholders are built; see [16-deferred-integrations.md](1
 | M2 | Army & formation | Roster, drag-to-place grid, live Power |
 | M3 | Map & loop | Node map, fog, respawns, loot, Spare/Claim |
 | M4 | Economy & camp | Hire, upgrade with preview, gathering, offline return |
-| M5 | Vertical slice | Region 1 complete, tutorial, save, playtest on 3 phones |
+| M5 | Vertical slice | Region 1 complete, tutorial, save, playtest on 3 phones; art style chosen |
+| M5.5 | Mobile build | Capacitor Android build of the slice; PWA install tested |
 | M6 | Content alpha | Regions 2–3, relics, skill tree, Support role |
 | M7 | Beta | All 5 regions, Deep Ruins, audio |
 | M8 | Services (deferred) | Channel chosen; real Ads/IAP/backend adapters behind existing ports |
 
+## Decisions (2026-10-09)
+
+| # | Question | Answer |
+|---|---|---|
+| 1 | Distribution channel | **Web + Mobile**: PWA and a Capacitor-wrapped app from one codebase (13) |
+| 2 | Art style | **Open.** Prototype in icon-silhouette style; style test on candidates (12) |
+| 3 | Backend | **Later.** Placeholder interfaces only (16) |
+| 4 | Title and IP | **Non-commercial.** Working title *Wreckbound*, no reuse of the reference's name or IP (01) |
+
 ## Open questions
 
-1. Distribution channel (web portal, PWA, or wrapped app)? It decides the ad and IAP SDKs.
-2. Art: commission sprites, or stay with stylized icon-based units for MVP?
-3. Is a backend wanted later (cloud save, leaderboards)? The DDD repositories allow swapping it in.
-4. Working title and IP: confirm the name doesn't collide with the reference game's.
+1. Art style: pick after the style test in [12-art-audio.md](12-art-audio.md).

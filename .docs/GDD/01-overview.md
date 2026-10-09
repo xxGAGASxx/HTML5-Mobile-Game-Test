@@ -8,7 +8,12 @@ persuading units, while idle units gather resources.
 
 ## Our high concept [P]
 
-**Working title:** *Bounty Isle* (placeholder).
+**Working title:** *Wreckbound* (decided 2026-10-09).
+
+Naming rules: this is a non-commercial project, but its title, characters and text must not reuse
+the reference game's name or IP. Avoid "Idle", "Bounty" and "Adventures" in the title. A quick web
+search found no game called *Wreckbound* (the nearest is *Windbound*, 2020); recheck before any
+public release. Backup names: *Castaway Crew*, *Saltcrown*, *Vael Expedition*.
 
 > Shipwrecked on a cursed island, you lead a ragtag expedition. Tap the map, pick your fights,
 > set your formation and watch your squad brawl. Spare the defeated and they join you. Leave crews
@@ -40,6 +45,12 @@ Heroes of Might and Magic (army stacks, map encounters, "join you" neutrals; lik
 
 Mid-core mobile players aged 16–40 who like light strategy and collection, play in short
 sessions, and dislike pay-to-win pressure. The reference's 12+ rating comes from moderate violence.
+
+## Project status [P]
+
+- **Non-commercial** hobby/test project. Monetization (10) and service SDKs (16) stay deferred, and
+  may never be needed.
+- **Distribution: Web + Mobile** from one codebase (see 13).
 
 ## Platform and constraints [P]
 

@@ -17,6 +17,19 @@
 | Language/build | TypeScript + Vite (proposed) |
 | Offline | Service worker, IndexedDB save |
 
+## Distribution: Web + Mobile [P]
+
+One TypeScript codebase, two targets:
+
+| Target | Build | Notes |
+|---|---|---|
+| Web | Static Vite build, installable PWA (manifest + service worker) | Any modern mobile or desktop browser; offline after first load |
+| Mobile app | Same web build wrapped with Capacitor (Android first, iOS optional) | Native splash, icon, haptics, status bar; storage via IndexedDB (or a Capacitor Preferences adapter) |
+
+Platform differences go behind a `Platform` port (`vibrate`, `share`, `openUrl`, `isNativeApp`,
+`safeAreaInsets`) with `WebPlatform` and `CapacitorPlatform` adapters. Domain code never checks
+the platform.
+
 ## Domain Driven Design
 
 ### Bounded contexts

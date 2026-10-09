@@ -9,7 +9,7 @@
 
 ## Our model [P]
 
-> **Status: DEFERRED.** No ads or IAP SDK is integrated for now. The design below is the target;
+> **Status: DEFERRED.** The project is non-commercial, so this section is a reference design only. No ads or IAP SDK is integrated for now. The design below is the target;
 > the code only ships the interfaces and no-op placeholders from
 > [16-deferred-integrations.md](16-deferred-integrations.md). Pearls are earned through gameplay only until then.
 

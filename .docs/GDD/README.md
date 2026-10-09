@@ -2,7 +2,8 @@
 
 This GDD analyzes **Idle Bounty Adventures** by Post Physical
 ([Google Play](https://play.google.com/store/apps/details?id=com.postphysical.idle.bounty.rpg.battle))
-and turns that analysis into a design for our own HTML5 mobile game built on the
+and turns that analysis into a design for our own non-commercial HTML5 game, working title
+*Wreckbound* (Web + Mobile), built on the
 stack in [`CLAUDE.md`](../../CLAUDE.md) (PixiJS, AnimeJS, Domain Driven Design, game-icons.net icons).
 
 It is not a clone spec. Where the reference game is known, we describe it; where it is not,
@@ -38,7 +39,7 @@ The full source list and what each one contributed is in [00-research-sources.md
 | 09 | [Idle & offline](09-idle-offline.md) | Gathering jobs, offline rewards, caps |
 | 10 | [Monetization](10-monetization.md) | Ads, IAP, ethics guardrails (deferred) |
 | 11 | [UI / UX](11-ui-ux.md) | Screens, HUD, flows, icon mapping |
-| 12 | [Art & audio](12-art-audio.md) | Visual direction, animation, sound |
+| 12 | [Art & audio](12-art-audio.md) | Art style candidates (open), animation, sound |
 | 13 | [Technical design](13-technical-design.md) | PixiJS/AnimeJS, DDD bounded contexts, save, perf |
 | 14 | [Player feedback analysis](14-player-feedback-analysis.md) | What players love and hate, and our response |
 | 15 | [Roadmap & MVP](15-roadmap-mvp.md) | Scope cuts, milestones, open questions |
