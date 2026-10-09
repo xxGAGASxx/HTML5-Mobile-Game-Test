@@ -31,7 +31,8 @@
     "preview": "vite preview --host",
     "typecheck": "tsc",
     "test": "vitest run",
-    "sim": "vitest run --config scripts/vitest.sim.config.ts --silent=false"
+    "sim": "vitest run --config scripts/vitest.sim.config.ts --silent=false",
+    "sprites": "node scripts/build-sprites.ts"
   },
   "engines": {
     "node": ">=20"

@@ -25,6 +25,10 @@ export class Tweens {
 
   /** Calls `callback` after `ms` (scaled by speed), unless the scene is torn down first. */
   wait(ms: number, callback: () => void): void {
+    if (ms <= 0) {
+      callback(); // a zero-length timer completes inside createTimer, before it is assigned
+      return;
+    }
     const timer = createTimer({
       duration: ms / this.speed,
       onComplete: () => {
@@ -33,6 +37,11 @@ export class Tweens {
       },
     });
     this.running.add(timer);
+  }
+
+  cancel(anim: JSAnimation): void {
+    anim.cancel();
+    this.running.delete(anim);
   }
 
   cancelAll(): void {

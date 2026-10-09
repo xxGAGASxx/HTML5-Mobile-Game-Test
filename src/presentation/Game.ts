@@ -13,6 +13,7 @@ export class Game {
       resizeTo: parent,
       background: 0x0b1d2a,
       antialias: false, // pixel-art friendly
+      roundPixels: true, // keep integer-zoomed pixel art on whole pixels
       autoDensity: true,
       resolution: Math.min(window.devicePixelRatio || 1, MAX_RESOLUTION),
     });

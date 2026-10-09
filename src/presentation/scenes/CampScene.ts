@@ -26,6 +26,7 @@ export class CampScene extends Scene {
   private readonly trainTab: Button;
   private readonly list = new Container();
   private readonly fightButton: Button;
+  private readonly artButton: Button;
   private readonly credits: Text;
   private tab: Tab = 'tavern';
   private selected: string | null = null;
@@ -35,6 +36,7 @@ export class CampScene extends Scene {
     private readonly session: GameSession,
     private readonly icons: Icons,
     onFight: () => void,
+    onArtTest: () => void,
   ) {
     super();
     this.bar = new ResourceBar(icons, this.tweens);
@@ -57,20 +59,23 @@ export class CampScene extends Scene {
         onFight();
       },
     });
+    // Art style test (GDD 12): every unit in each style, looping its animations.
+    this.artButton = new Button({ label: 'Art', width: 72, height: 60, fontSize: 16, color: COLORS.text, onTap: onArtTest });
     this.credits = new Text({
       text: 'Icons by Lorc, Delapouite & Sbed · game-icons.net · CC BY 3.0',
       style: { fontFamily: FONT, fontSize: 10, fill: COLORS.muted },
     });
     this.credits.anchor.set(0.5, 1);
-    this.addChild(this.powerText, this.grid, this.gridHint, this.tavernTab, this.trainTab, this.list, this.fightButton, this.credits, this.bar);
+    this.addChild(this.powerText, this.grid, this.gridHint, this.tavernTab, this.trainTab, this.list, this.fightButton, this.artButton, this.credits, this.bar);
     this.bar.setCaption(`Next: wave ${session.wave}`);
   }
 
   layout(width: number, height: number): void {
     this.screenW = width;
     this.bar.layout(width);
-    this.fightButton.resize(width - PAD * 2);
-    this.fightButton.position.set(width / 2, height - 24 - this.fightButton.buttonHeight / 2);
+    this.fightButton.resize(width - PAD * 3 - this.artButton.buttonWidth);
+    this.fightButton.position.set(PAD + this.fightButton.buttonWidth / 2, height - 24 - this.fightButton.buttonHeight / 2);
+    this.artButton.position.set(width - PAD - this.artButton.buttonWidth / 2, this.fightButton.y);
     this.credits.position.set(width / 2, height - 4);
     const tabW = (width - PAD * 3) / 2;
     this.tavernTab.resize(tabW);

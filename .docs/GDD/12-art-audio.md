@@ -12,6 +12,12 @@
 > **Status: LEANING PIXEL ART (B).** Reference images in [`.docs/Art-Style/`](../Art-Style/README.md)
 > point to detailed pixel-art units in a 3/4 front view and an isometric pixel-art map. The final
 > pick still follows the style test below; the references are the target look for candidate B.
+>
+> **Style test build (in progress):** the battle can be drawn as A (icons), B (pixel art) or E
+> (tabletop minis) with the style button in the battle HUD, and the **Art** button in camp opens a
+> gallery of every unit looping its animations. `?style=icons|pixel|minis` picks the start style.
+> B and E use self-made sprites generated from [`art/pixel/`](../../art/pixel/README.md).
+> The pick and the final palette/animation specs get recorded here once chosen.
 
 ### Style candidates
 
