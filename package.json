@@ -1,0 +1,22 @@
+{
+  "name": "html5-mobile-game-test",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xxGAGASxx/HTML5-Mobile-Game-Test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/xxGAGASxx/HTML5-Mobile-Game-Test/issues"
+  },
+  "homepage": "https://github.com/xxGAGASxx/HTML5-Mobile-Game-Test#readme",
+  "dependencies": {
+    "animejs": "^4.5.0",
+    "pixi.js": "^8.22.0"
+  },
+  "private": true,
+  "type": "module"
+}
