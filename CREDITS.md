@@ -4,6 +4,11 @@
 
 Units, effects, battlefield tiles and island maps are self-made, generated from `art/pixel/` by `npm run sprites`.
 
+## Font
+
+[JetBrains Mono](https://www.jetbrains.com/lp/mono/) by JetBrains, licensed under the
+[SIL Open Font License 1.1](https://openfontlicense.org), bundled through `@fontsource/jetbrains-mono`.
+
 ## Icons
 
 UI icons come from [game-icons.net](https://game-icons.net), licensed under

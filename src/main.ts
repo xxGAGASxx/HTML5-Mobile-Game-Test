@@ -1,4 +1,6 @@
 // Composition root: the only place that picks concrete adapters.
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-700.css';
 import { GameSession } from './application/GameSession';
 import { CONTENT } from './data/content';
 import { WebPlatform } from './infrastructure/platform/WebPlatform';
@@ -20,6 +22,9 @@ import { MapScene } from './presentation/scenes/MapScene';
 
   const parent = document.getElementById('game');
   if (!parent) throw new Error('#game element missing');
+
+  // Pixi measures text when it is created, so the bundled font has to be ready first.
+  await Promise.all(['400 16px "JetBrains Mono"', '700 16px "JetBrains Mono"'].map((f) => document.fonts.load(f))).catch(() => undefined);
 
   const game = new Game();
   await game.init(parent);
