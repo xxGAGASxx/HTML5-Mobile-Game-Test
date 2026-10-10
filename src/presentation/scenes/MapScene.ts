@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Rectangle, Sprite, Text, type FederatedPointerEvent } from 'pixi.js';
+import { AnimatedSprite, Container, Graphics, Rectangle, Sprite, Text, Texture, type FederatedPointerEvent } from 'pixi.js';
 import type { GameSession, NodeInfo } from '../../application/GameSession';
 import type { Resources } from '../../domain/economy';
 import type { NodeKind, ThreatLabel } from '../../domain/exploration';
@@ -6,6 +6,7 @@ import { icon, type Icons } from '../assets/icons';
 import type { MapAsset } from '../assets/maps';
 import { frames, type PixelAssets } from '../assets/pixel';
 import { formatNumber } from '../format';
+import { FOG_LEVELS, fogDensity, type FogHole } from '../map/FogOfWar';
 import { RoadNetwork, type Leg, type RoadPos } from '../map/RoadNetwork';
 import { Tweens } from '../Tweens';
 import { COLORS, FONT } from '../theme';
@@ -25,6 +26,11 @@ const FRICTION = 0.9;
 const WALK_SPEED = 80;
 /** How far from a road (screen px) a tap still counts as a tap on it. */
 const ROAD_TAP_RADIUS = 26;
+/** Fog is drawn in blocks of this many art pixels, so its dithered edge reads as pixel art. */
+const FOG_CELL = 2;
+/** Fog colour and its opacity at each density level (0 is clear). */
+const FOG_RGB = [0x4a, 0x55, 0x62] as const;
+const FOG_ALPHA = [0, 0.5, 0.8, 1] as const;
 
 export const THREAT_COLORS: Record<ThreatLabel, number> = {
   trivial: 0x9aa4ac,
@@ -98,6 +104,11 @@ export class MapScene extends Scene {
   private readonly fx = new Container();
   private readonly markerLayer = new Container();
   private readonly fog = new Container();
+  private readonly fogCanvas: HTMLCanvasElement;
+  private readonly fogSheet: Sprite;
+  /** How far each revealed node's clear patch has opened, 0 to 1. */
+  private readonly fogHoles = new Map<string, { scale: number }>();
+  private fogDirty = true;
   private readonly markers = new Map<string, Marker>();
   private readonly clouds = new Map<string, Container>();
   private readonly glints: AnimatedSprite[] = [];
@@ -167,6 +178,13 @@ export class MapScene extends Scene {
 
     this.buildFx();
     this.buildMarkers();
+    this.fogCanvas = document.createElement('canvas');
+    this.fogCanvas.width = Math.ceil(map.width / FOG_CELL);
+    this.fogCanvas.height = Math.ceil(map.height / FOG_CELL);
+    const fogTexture = Texture.from(this.fogCanvas);
+    fogTexture.source.scaleMode = 'nearest';
+    this.fogSheet = new Sprite(fogTexture);
+    this.fog.addChild(this.fogSheet);
     this.buildFog();
     this.addChild(this.world, this.zoomHint, this.bottom, this.campButton, this.progress, this.card, this.bar);
     this.tweens.play(this.zoomHint, { alpha: [1, 0], delay: 2200, duration: 600, ease: 'inQuad' });
@@ -215,6 +233,7 @@ export class MapScene extends Scene {
     }
     for (const g of this.glints) if (!g.playing && Math.random() < deltaMs / 2500) g.gotoAndPlay(0);
     this.stepWalk(deltaMs);
+    if (this.fogDirty) this.drawFog();
     // Respawn timers and resource sites tick on the wall clock.
     this.refreshIn -= deltaMs;
     if (this.refreshIn <= 0) this.refresh();
@@ -224,6 +243,7 @@ export class MapScene extends Scene {
     lastView = { x: this.world.x, y: this.world.y };
     lastParty = this.partyPos;
     this.tweens.cancelAll();
+    this.fogSheet.texture.destroy(true);
     super.destroy(options);
   }
 
@@ -464,8 +484,14 @@ export class MapScene extends Scene {
     }
   }
 
-  /** Three or four clouds over every node still in the fog, plus the ones about to be revealed. */
+  /**
+   * Thick fog over the whole island except around revealed nodes and the roads between them, with
+   * clouds drifting over every node still in the fog, plus the ones about to be revealed.
+   */
   private buildFog(): void {
+    for (const id of this.session.map.ids) {
+      if (this.session.map.isRevealed(id)) this.fogHoles.set(id, { scale: this.revealing.has(id) ? 0 : 1 });
+    }
     const textures = frames(this.pixel, 'map/cloud');
     let n = 0;
     for (const id of this.session.map.ids) {
@@ -489,8 +515,38 @@ export class MapScene extends Scene {
     }
   }
 
+  /** Repaints the fog sheet from the current clear patches. */
+  private drawFog(): void {
+    this.fogDirty = false;
+    const holes: FogHole[] = [];
+    for (const [id, hole] of this.fogHoles) {
+      const p = this.map.nodes[id]!;
+      holes.push({ x: p.x, y: p.y, scale: hole.scale });
+    }
+    // A road clears once both its ends are fully out of the fog.
+    const open = (id: string): boolean => (this.fogHoles.get(id)?.scale ?? 0) >= 1;
+    const roads = Object.entries(this.map.roads)
+      .filter(([key]) => key.split('|').every(open))
+      .map(([, line]) => line);
+    const { width, height } = this.fogCanvas;
+    const density = fogDensity(this.map.width, this.map.height, FOG_CELL, holes, roads);
+    const ctx = this.fogCanvas.getContext('2d')!;
+    const image = ctx.createImageData(width, height);
+    const [r, g, b] = FOG_RGB;
+    for (let i = 0; i < density.length; i++) {
+      const o = i * 4;
+      image.data[o] = r;
+      image.data[o + 1] = g;
+      image.data[o + 2] = b;
+      image.data[o + 3] = Math.round(FOG_ALPHA[Math.min(density[i]!, FOG_LEVELS - 1)]! * 255);
+    }
+    ctx.putImageData(image, 0, 0);
+    this.fogSheet.texture.source.update();
+  }
+
   private placeWorldObjects(): void {
     const z = this.zoom;
+    this.fogSheet.scale.set(z * FOG_CELL);
     this.map.fires.forEach(([x, y], i) => {
       const fire = this.fx.children[i] as AnimatedSprite;
       fire.scale.set(z);
@@ -518,6 +574,10 @@ export class MapScene extends Scene {
     for (const id of this.revealing) {
       const group = this.clouds.get(id);
       const marker = this.markers.get(id);
+      // Revealed after the scene opened (auto-clear): its patch starts shut.
+      const hole = this.fogHoles.get(id) ?? { scale: 0 };
+      this.fogHoles.set(id, hole);
+      this.tweens.play(hole, { scale: 1, duration: 1000, delay, ease: 'outQuad', onUpdate: () => (this.fogDirty = true) });
       if (group) {
         group.children.forEach((cloud, i) => {
           const dir = cloud.x < 0 ? -1 : 1;
@@ -612,10 +672,17 @@ export class MapScene extends Scene {
       .clear()
       .ellipse(0, 0, r * 0.9, r * 0.4)
       .fill({ color: 0x000000, alpha: 0.35 })
+      // White outline around the pin and disc so markers stand out on sand and fog alike.
+      .rect(-2, cy + r - 2, 4, 16 - r / 2 + 3)
+      .fill(0xffffff)
       .rect(-1, cy + r - 2, 2, 16 - r / 2 + 2)
+      .fill(0x1b1622);
+    if (selected) m.disc.circle(0, cy, r + 6).fill(COLORS.rally);
+    m.disc
+      .circle(0, cy, r + 4)
+      .fill(0xffffff)
+      .circle(0, cy, r + 2)
       .fill(0x1b1622)
-      .circle(0, cy, r + (selected ? 4 : 2))
-      .fill(selected ? COLORS.text : 0x1b1622)
       .circle(0, cy, r)
       .fill(fill);
     m.badge.tint = iconTint;
