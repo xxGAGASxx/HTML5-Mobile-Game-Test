@@ -672,10 +672,17 @@ export class MapScene extends Scene {
       .clear()
       .ellipse(0, 0, r * 0.9, r * 0.4)
       .fill({ color: 0x000000, alpha: 0.35 })
+      // White outline around the pin and disc so markers stand out on sand and fog alike.
+      .rect(-2, cy + r - 2, 4, 16 - r / 2 + 3)
+      .fill(0xffffff)
       .rect(-1, cy + r - 2, 2, 16 - r / 2 + 2)
+      .fill(0x1b1622);
+    if (selected) m.disc.circle(0, cy, r + 6).fill(COLORS.rally);
+    m.disc
+      .circle(0, cy, r + 4)
+      .fill(0xffffff)
+      .circle(0, cy, r + 2)
       .fill(0x1b1622)
-      .circle(0, cy, r + (selected ? 4 : 2))
-      .fill(selected ? COLORS.text : 0x1b1622)
       .circle(0, cy, r)
       .fill(fill);
     m.badge.tint = iconTint;
