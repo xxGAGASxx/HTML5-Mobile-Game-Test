@@ -1,13 +1,11 @@
 import { Container, Text } from 'pixi.js';
 import type { UnitType } from '../../domain/army';
-import { ART_STYLE_LABELS, getArtStyle, nextArtStyle, setArtStyle } from '../art/ArtStyle';
-import { createBattleArt, impactKind, pixelScaleFor, type BattleArt, type UnitArtSpec } from '../art/BattleArt';
-import type { Icons } from '../assets/icons';
+import { impactKind, PixelArt, pixelScaleFor, type ImpactKind, type UnitArtSpec } from '../art/PixelArt';
 import type { PixelAssets } from '../assets/pixel';
 import { Tweens } from '../Tweens';
 import { COLORS, FONT } from '../theme';
 import { Button } from '../ui/Button';
-import type { UnitView } from '../ui/UnitView';
+import type { PixelUnit } from '../ui/PixelUnit';
 import { Scene } from './Scene';
 
 const COLS = 3;
@@ -17,14 +15,14 @@ interface Slot {
   spec: UnitArtSpec;
   ranged: boolean;
   label: Text;
-  view: UnitView | null;
+  view: PixelUnit | null;
   x: number;
   y: number;
 }
 
 /**
- * Style test gallery (open with `?gallery`): every unit in a grid, looping attack, hit and death,
- * so each art style can be judged on the whole roster, not only the units wave 1 happens to field.
+ * Unit gallery (camp "Units" button, or `?gallery`): every unit in a grid looping attack, hit and
+ * death, for checking sprites on the whole roster rather than only the units a wave happens to field.
  */
 export class GalleryScene extends Scene {
   private readonly tweens = new Tweens();
@@ -32,10 +30,9 @@ export class GalleryScene extends Scene {
   private readonly units = new Container({ sortableChildren: true });
   private readonly fx = new Container();
   private readonly slots: Slot[];
-  private readonly styleButton: Button;
   private readonly backButton: Button;
   private readonly title: Text;
-  private art: BattleArt;
+  private readonly art: PixelArt;
   private screenW = 0;
   private screenH = 0;
   private cell = 0;
@@ -43,22 +40,20 @@ export class GalleryScene extends Scene {
 
   constructor(
     types: readonly { type: UnitType; enemy: boolean }[],
-    private readonly icons: Icons,
-    private readonly pixel: PixelAssets,
+    pixel: PixelAssets,
     onBack: () => void,
   ) {
     super();
-    this.art = createBattleArt(getArtStyle(), icons, pixel);
+    this.art = new PixelArt(pixel);
     this.slots = types.map(({ type, enemy }) => {
       const label = new Text({ text: type.name, style: { fontFamily: FONT, fontSize: 12, fontWeight: 'bold', fill: COLORS.text, stroke: { color: 0x000000, width: 3 } } });
       label.anchor.set(0.5, 0);
-      return { spec: { typeId: type.id, icon: type.icon, role: type.role, enemy }, ranged: type.stats.ranged, label, view: null, x: 0, y: 0 };
+      return { spec: { typeId: type.id, role: type.role, enemy }, ranged: type.stats.ranged, label, view: null, x: 0, y: 0 };
     });
-    this.title = new Text({ text: 'Art style test', style: { fontFamily: FONT, fontSize: 18, fontWeight: 'bold', fill: COLORS.text } });
+    this.title = new Text({ text: 'Unit gallery', style: { fontFamily: FONT, fontSize: 18, fontWeight: 'bold', fill: COLORS.text } });
     this.title.anchor.set(0.5);
-    this.styleButton = new Button({ label: ART_STYLE_LABELS[this.art.style], width: 200, height: 56, color: COLORS.text, onTap: () => this.switchStyle() });
     this.backButton = new Button({ label: 'Back', width: 96, height: 56, color: COLORS.muted, onTap: onBack });
-    this.addChild(this.backdrop, this.units, this.fx, ...this.slots.map((s) => s.label), this.title, this.styleButton, this.backButton);
+    this.addChild(this.backdrop, this.units, this.fx, ...this.slots.map((s) => s.label), this.title, this.backButton);
   }
 
   layout(width: number, height: number): void {
@@ -76,9 +71,8 @@ export class GalleryScene extends Scene {
       slot.label.position.set(slot.x, Math.round(slot.y + this.cell * 0.4));
     }
     this.title.position.set(width / 2, 24);
-    this.styleButton.resize(width - 48 - this.backButton.buttonWidth);
-    this.styleButton.position.set(16 + this.styleButton.buttonWidth / 2, height - FOOTER / 2);
-    this.backButton.position.set(width - 16 - this.backButton.buttonWidth / 2, height - FOOTER / 2);
+    this.backButton.resize(width - 32);
+    this.backButton.position.set(width / 2, height - FOOTER / 2);
     this.rebuild();
   }
 
@@ -89,13 +83,6 @@ export class GalleryScene extends Scene {
     super.destroy(options);
   }
 
-  private switchStyle(): void {
-    const style = nextArtStyle(this.art.style);
-    setArtStyle(style);
-    this.art = createBattleArt(style, this.icons, this.pixel);
-    this.styleButton.label = ART_STYLE_LABELS[style];
-    this.rebuild();
-  }
 
   private rebuild(): void {
     this.generation++;
@@ -121,7 +108,7 @@ export class GalleryScene extends Scene {
     const view = this.art.createUnit(slot.spec, this.tweens);
     view.position.set(slot.x, slot.y);
     view.zIndex = slot.y;
-    view.setSize(this.cell * 0.78 * 0.9, pixelScaleFor(this.cell));
+    view.setSize(pixelScaleFor(this.cell));
     this.units.addChild(view);
     slot.view = view;
   }
@@ -159,9 +146,8 @@ export class GalleryScene extends Scene {
     }
   }
 
-  private effect(kind: Parameters<BattleArt['effect']>[0], x: number, y: number): void {
+  private effect(kind: ImpactKind | 'dust', x: number, y: number): void {
     const fx = this.art.effect(kind, pixelScaleFor(this.cell), 1);
-    if (!fx) return;
     fx.position.set(x, y);
     this.fx.addChild(fx);
   }

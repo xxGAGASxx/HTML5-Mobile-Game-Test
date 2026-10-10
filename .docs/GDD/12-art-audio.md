@@ -9,8 +9,9 @@
 
 ## Our direction [P]
 
-> **Status: DECIDED, PIXEL ART (B).** Gago picked B on 2026-10-10 after the style test build
-> (battle style button and camp **Art** gallery, A vs B vs E). The references in
+> **Status: DECIDED, PIXEL ART (B).** Gago picked B on 2026-10-10 after a style test build that
+> drew the same battle as A, B and E. The game is now pixel art only: battle, camp and the
+> **Units** gallery; game-icons.net stays for UI icons. The references in
 > [`.docs/Art-Style/`](../Art-Style/README.md) stay the target look. Production specs are under
 > *Visual style* and *Animation* below; sprite sources live in [`art/pixel/`](../../art/pixel/README.md).
 

@@ -39,11 +39,6 @@ export class Tweens {
     this.running.add(timer);
   }
 
-  cancel(anim: JSAnimation): void {
-    anim.cancel();
-    this.running.delete(anim);
-  }
-
   cancelAll(): void {
     for (const anim of this.running) anim.cancel();
     this.running.clear();

@@ -5,8 +5,6 @@ export interface UnitType {
   readonly id: string;
   readonly name: string;
   readonly role: Role;
-  /** Placeholder art key (a game-icons.net slug). */
-  readonly icon: string;
   readonly stats: UnitStats;
 }
 

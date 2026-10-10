@@ -249,14 +249,6 @@ function creatureFrames(draw: (p: CreaturePose) => PixelCanvas): UnitFrames {
   };
 }
 
-/** Tabletop-mini standee (style E): the idle figure on a cream cardboard backing with a dark cut edge. */
-export function standee(figure: PixelCanvas): PixelCanvas {
-  const card = figure.dilate(1, '#f2ead2');
-  card.outline('#5a5038');
-  card.blit(figure, 0, 0);
-  return card;
-}
-
 export function buildUnits(): Map<string, UnitFrames> {
   const out = new Map<string, UnitFrames>();
   for (const [id, recipe] of Object.entries(RECIPES)) out.set(id, humanoidFrames(recipe));

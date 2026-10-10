@@ -1,18 +1,11 @@
 import { AnimatedSprite, Container, Graphics, Sprite, TilingSprite } from 'pixi.js';
 import type { Role } from '../../domain/shared';
-import type { Icons } from '../assets/icons';
 import { frames, type PixelAssets } from '../assets/pixel';
 import type { Tweens } from '../Tweens';
-import { COLORS, ROLE_COLORS } from '../theme';
-import { MiniUnit } from '../ui/MiniUnit';
 import { PixelUnit } from '../ui/PixelUnit';
-import { UnitToken } from '../ui/UnitToken';
-import type { UnitView } from '../ui/UnitView';
-import type { ArtStyle } from './ArtStyle';
 
 export interface UnitArtSpec {
   typeId: string;
-  icon: string;
   role: Role;
   enemy: boolean;
 }
@@ -29,18 +22,7 @@ export interface FieldGeometry {
 
 export type ImpactKind = 'slash' | 'spark' | 'magic';
 
-/** Everything the battle scene draws that depends on the art style. */
-export interface BattleArt {
-  readonly style: ArtStyle;
-  createUnit(spec: UnitArtSpec, tweens: Tweens): UnitView;
-  drawField(layer: Container, field: FieldGeometry): void;
-  /** A projectile pointing right (+x); the scene rotates it towards the target. */
-  projectile(spec: UnitArtSpec, pixelScale: number): Container;
-  /** A one-shot effect that removes itself when done, or null if the style has none. */
-  effect(kind: ImpactKind | 'dust', pixelScale: number, speed: number): Container | null;
-}
-
-/** Integer zoom for pixel styles: 48 px art cells land near the slot size. */
+/** Integer zoom for pixel art: 48 px art cells land near the slot size. */
 export function pixelScaleFor(cell: number): number {
   return Math.max(1, Math.round(cell / 42));
 }
@@ -50,37 +32,11 @@ export function impactKind(spec: UnitArtSpec, ranged: boolean): ImpactKind {
   return spec.role === 'caster' ? 'magic' : 'spark';
 }
 
-export class IconArt implements BattleArt {
-  readonly style = 'icons';
+/** Battle visuals in the game's pixel art: units, the coast battlefield, projectiles and effects. */
+export class PixelArt {
+  constructor(private readonly assets: PixelAssets) {}
 
-  constructor(private readonly icons: Icons) {}
-
-  createUnit(spec: UnitArtSpec): UnitView {
-    return new UnitToken(this.icons, spec.icon, spec.role, spec.enemy);
-  }
-
-  drawField(layer: Container, { width, height, mid }: FieldGeometry): void {
-    const g = new Graphics().rect(0, 0, width, height).fill(COLORS.background);
-    g.rect(0, 0, width, mid).fill({ color: COLORS.enemy, alpha: 0.18 });
-    g.moveTo(16, mid).lineTo(width - 16, mid).stroke({ width: 2, color: COLORS.muted, alpha: 0.3 });
-    layer.addChild(g);
-  }
-
-  projectile(spec: UnitArtSpec, pixelScale: number): Container {
-    return new Graphics().circle(0, 0, Math.max(4, pixelScale * 3)).fill(ROLE_COLORS[spec.role]);
-  }
-
-  effect(): Container | null {
-    return null;
-  }
-}
-
-export class PixelArt implements BattleArt {
-  readonly style: ArtStyle = 'pixel';
-
-  constructor(protected readonly assets: PixelAssets) {}
-
-  createUnit(spec: UnitArtSpec, tweens: Tweens): UnitView {
+  createUnit(spec: UnitArtSpec, tweens: Tweens): PixelUnit {
     return new PixelUnit(this.assets, spec.typeId, () => tweens.speed);
   }
 
@@ -125,6 +81,7 @@ export class PixelArt implements BattleArt {
     }
   }
 
+  /** A projectile pointing right (+x); the scene rotates it towards the target. */
   projectile(spec: UnitArtSpec, pixelScale: number): Container {
     const kind = spec.typeId === 'skull-gunner' ? 'fx/ball' : spec.role === 'caster' ? 'fx/bolt' : 'fx/arrow';
     const textures = frames(this.assets, kind);
@@ -134,41 +91,14 @@ export class PixelArt implements BattleArt {
     return sprite;
   }
 
-  effect(kind: ImpactKind | 'dust', pixelScale: number, speed: number): Container | null {
+  /** A one-shot effect that removes itself when its animation ends. */
+  effect(kind: ImpactKind | 'dust', pixelScale: number, speed: number): Container {
     const fx = new AnimatedSprite({ textures: frames(this.assets, `fx/${kind}`), loop: false, updateAnchor: true });
     fx.animationSpeed = (kind === 'dust' ? 0.2 : 0.4) * speed;
     fx.scale.set(pixelScale);
     fx.onComplete = () => fx.destroy();
     fx.play();
     return fx;
-  }
-}
-
-/** Style E: the pixel figures as cardboard minis on a tabletop board with a square per slot. */
-export class MiniArt extends PixelArt {
-  override readonly style: ArtStyle = 'minis';
-
-  override createUnit(spec: UnitArtSpec, tweens: Tweens): UnitView {
-    return new MiniUnit(this.assets, spec.typeId, spec.role, spec.enemy, tweens);
-  }
-
-  override drawField(layer: Container, f: FieldGeometry): void {
-    const g = new Graphics();
-    // Wooden table.
-    g.rect(0, 0, f.width, f.height).fill(0x5e3a24);
-    for (let y = 0; y < f.height; y += 22) g.rect(0, y, f.width, 2).fill({ color: 0x3a2418, alpha: 0.6 });
-    for (let y = 11; y < f.height; y += 44) g.rect(0, y, f.width, 1).fill({ color: 0x87573a, alpha: 0.4 });
-    // Printed board.
-    const pad = 10;
-    g.roundRect(pad, pad, f.width - pad * 2, f.height - pad * 2, 10).fill(0x2f4a3a).stroke({ width: 4, color: 0x1a2a20 });
-    g.rect(pad, pad, f.width - pad * 2, f.mid - pad).fill({ color: COLORS.enemy, alpha: 0.35 });
-    g.moveTo(pad, f.mid).lineTo(f.width - pad, f.mid).stroke({ width: 3, color: 0xf2ead2, alpha: 0.5 });
-    // One square per slot.
-    const s = f.cell * 0.92;
-    for (const slot of f.slots) {
-      g.rect(slot.x - s / 2, slot.y - s / 2, s, s).stroke({ width: 2, color: 0xf2ead2, alpha: 0.25 });
-    }
-    layer.addChild(g);
   }
 }
 
@@ -180,15 +110,4 @@ function seeded(seed: number): () => number {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-export function createBattleArt(style: ArtStyle, icons: Icons, pixel: PixelAssets): BattleArt {
-  switch (style) {
-    case 'icons':
-      return new IconArt(icons);
-    case 'pixel':
-      return new PixelArt(pixel);
-    case 'minis':
-      return new MiniArt(pixel);
-  }
 }

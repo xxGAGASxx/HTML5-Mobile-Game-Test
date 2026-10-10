@@ -1,7 +1,7 @@
-# Pixel art sources (style test B / E)
+# Pixel art sources
 
-Self-made pixel art for the art style test in [GDD 12](../../.docs/GDD/12-art-audio.md). Nothing here
-ships directly: `npm run sprites` turns these sources into the files the game loads.
+Self-made pixel art for every unit, effect and battlefield tile (style decided in
+[GDD 12](../../.docs/GDD/12-art-audio.md)). Nothing here ships directly: `npm run sprites` turns these sources into the files the game loads.
 
 | File | What it holds |
 |---|---|
@@ -15,7 +15,7 @@ ships directly: `npm run sprites` turns these sources into the files the game lo
 Output (committed, served by Vite from `public/`):
 
 - `public/assets/sprites/pixel.png` + `pixel.json`: one PixiJS atlas with every frame and animation
-  (`<unit id>/<idle|attack|hit|death>`, `<unit id>/mini`, `fx/*`, `deco/*`, `shadow`).
+  (`<unit id>/<idle|attack|hit|death>`, `fx/*`, `deco/*`, `shadow`).
 - `public/assets/sprites/ground-*.png`: seamless tiles for `TilingSprite`.
 
 Units are drawn in a 48 x 48 cell with the feet on row 44, and shown at an integer zoom with

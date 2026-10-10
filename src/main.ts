@@ -32,9 +32,9 @@ import { GalleryScene } from './presentation/scenes/GalleryScene';
   session.events.subscribe('UnitHired', (e) => services.analytics.track('unit_hired', { type: e.typeId }));
 
   const roster = [...CONTENT.playerUnits.map((type) => ({ type, enemy: false })), ...CONTENT.enemyUnits.map((type) => ({ type, enemy: true }))];
-  const toCamp = (): void => game.show(new CampScene(session, icons, toBattle, toGallery));
+  const toCamp = (): void => game.show(new CampScene(session, icons, pixel, toBattle, toGallery));
   const toBattle = (): void => game.show(new BattleScene(session, icons, pixel, toCamp));
-  const toGallery = (): void => game.show(new GalleryScene(roster, icons, pixel, toCamp));
+  const toGallery = (): void => game.show(new GalleryScene(roster, pixel, toCamp));
   if (new URLSearchParams(window.location.search).has('gallery')) toGallery();
   else toCamp();
 })();

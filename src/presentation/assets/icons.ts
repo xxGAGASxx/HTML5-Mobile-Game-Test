@@ -1,22 +1,14 @@
 import { Assets, type Texture } from 'pixi.js';
 
 /**
- * Placeholder art: white silhouettes from game-icons.net (CC BY 3.0, see CREDITS.md),
+ * UI icons: white silhouettes from game-icons.net (CC BY 3.0, see CREDITS.md),
  * tinted at runtime. Files live in public/icons.
  */
 export const ICON_SLUGS = [
-  'shield',
-  'broadsword',
-  'bow-arrow',
-  'magic-swirl',
   'two-coins',
   'meat',
   'crossed-swords',
   'camping-tent',
-  'crab',
-  'wolf-head',
-  'bandit',
-  'pirate-skull',
   'fast-forward-button',
   'sword-clash',
 ] as const;

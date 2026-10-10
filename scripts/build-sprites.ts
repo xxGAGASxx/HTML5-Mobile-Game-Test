@@ -1,4 +1,4 @@
-// Builds the pixel-art style test sprites from the sources in art/pixel/.
+// Builds the game's pixel-art sprites from the sources in art/pixel/.
 //   npm run sprites                 -> public/assets/sprites/pixel.png + pixel.json, ground-*.png
 //   npm run sprites -- --preview D  -> also writes an x4 contact sheet to directory D
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { PixelCanvas } from '../art/pixel/canvas.ts';
 import { buildDeco, buildFx, buildGround } from '../art/pixel/fx.ts';
-import { ANIMS, buildUnits, standee } from '../art/pixel/units.ts';
+import { ANIMS, buildUnits } from '../art/pixel/units.ts';
 
 const OUT = join(import.meta.dirname, '..', 'public', 'assets', 'sprites');
 const ATLAS_WIDTH = 1024;
@@ -35,10 +35,7 @@ function add(key: string, list: PixelCanvas[], anchor: { x: number; y: number })
 }
 
 // Units: feet on row 44 of a 48 px cell, so anchor at the feet.
-for (const [id, anims] of buildUnits()) {
-  for (const anim of ANIMS) add(`${id}/${anim}`, anims[anim], { x: 0.5, y: 45 / 48 });
-  add(`${id}/mini`, [standee(anims.idle[0]!)], { x: 0.5, y: 45 / 48 });
-}
+for (const [id, anims] of buildUnits()) for (const anim of ANIMS) add(`${id}/${anim}`, anims[anim], { x: 0.5, y: 45 / 48 });
 for (const [key, list] of buildFx()) add(key, list, { x: 0.5, y: 0.5 });
 for (const [key, list] of buildDeco()) add(key, list, { x: 0.5, y: 1 });
 

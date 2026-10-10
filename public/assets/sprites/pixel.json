@@ -396,31 +396,9 @@
     "y": 0.9375
    }
   },
-  "bosun-marla/mini/0": {
-   "frame": {
-    "x": 900,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
   "gull-deckhands/idle/0": {
    "frame": {
-    "x": 950,
+    "x": 900,
     "y": 0,
     "w": 48,
     "h": 48
@@ -442,8 +420,8 @@
   },
   "gull-deckhands/idle/1": {
    "frame": {
-    "x": 0,
-    "y": 50,
+    "x": 950,
+    "y": 0,
     "w": 48,
     "h": 48
    },
@@ -464,7 +442,7 @@
   },
   "gull-deckhands/idle/2": {
    "frame": {
-    "x": 50,
+    "x": 0,
     "y": 50,
     "w": 48,
     "h": 48
@@ -486,7 +464,7 @@
   },
   "gull-deckhands/idle/3": {
    "frame": {
-    "x": 100,
+    "x": 50,
     "y": 50,
     "w": 48,
     "h": 48
@@ -508,7 +486,7 @@
   },
   "gull-deckhands/attack/0": {
    "frame": {
-    "x": 150,
+    "x": 100,
     "y": 50,
     "w": 48,
     "h": 48
@@ -530,7 +508,7 @@
   },
   "gull-deckhands/attack/1": {
    "frame": {
-    "x": 200,
+    "x": 150,
     "y": 50,
     "w": 48,
     "h": 48
@@ -552,7 +530,7 @@
   },
   "gull-deckhands/attack/2": {
    "frame": {
-    "x": 250,
+    "x": 200,
     "y": 50,
     "w": 48,
     "h": 48
@@ -574,7 +552,7 @@
   },
   "gull-deckhands/attack/3": {
    "frame": {
-    "x": 300,
+    "x": 250,
     "y": 50,
     "w": 48,
     "h": 48
@@ -596,7 +574,7 @@
   },
   "gull-deckhands/attack/4": {
    "frame": {
-    "x": 350,
+    "x": 300,
     "y": 50,
     "w": 48,
     "h": 48
@@ -618,7 +596,7 @@
   },
   "gull-deckhands/attack/5": {
    "frame": {
-    "x": 400,
+    "x": 350,
     "y": 50,
     "w": 48,
     "h": 48
@@ -640,7 +618,7 @@
   },
   "gull-deckhands/hit/0": {
    "frame": {
-    "x": 450,
+    "x": 400,
     "y": 50,
     "w": 48,
     "h": 48
@@ -662,7 +640,7 @@
   },
   "gull-deckhands/hit/1": {
    "frame": {
-    "x": 500,
+    "x": 450,
     "y": 50,
     "w": 48,
     "h": 48
@@ -684,7 +662,7 @@
   },
   "gull-deckhands/death/0": {
    "frame": {
-    "x": 550,
+    "x": 500,
     "y": 50,
     "w": 48,
     "h": 48
@@ -706,7 +684,7 @@
   },
   "gull-deckhands/death/1": {
    "frame": {
-    "x": 600,
+    "x": 550,
     "y": 50,
     "w": 48,
     "h": 48
@@ -728,7 +706,7 @@
   },
   "gull-deckhands/death/2": {
    "frame": {
-    "x": 650,
+    "x": 600,
     "y": 50,
     "w": 48,
     "h": 48
@@ -750,7 +728,7 @@
   },
   "gull-deckhands/death/3": {
    "frame": {
-    "x": 700,
+    "x": 650,
     "y": 50,
     "w": 48,
     "h": 48
@@ -772,7 +750,7 @@
   },
   "gull-deckhands/death/4": {
    "frame": {
-    "x": 750,
+    "x": 700,
     "y": 50,
     "w": 48,
     "h": 48
@@ -794,29 +772,7 @@
   },
   "gull-deckhands/death/5": {
    "frame": {
-    "x": 800,
-    "y": 50,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "gull-deckhands/mini/0": {
-   "frame": {
-    "x": 850,
+    "x": 750,
     "y": 50,
     "w": 48,
     "h": 48
@@ -838,7 +794,7 @@
   },
   "driftwood-wardens/idle/0": {
    "frame": {
-    "x": 900,
+    "x": 800,
     "y": 50,
     "w": 48,
     "h": 48
@@ -860,7 +816,7 @@
   },
   "driftwood-wardens/idle/1": {
    "frame": {
-    "x": 950,
+    "x": 850,
     "y": 50,
     "w": 48,
     "h": 48
@@ -882,8 +838,8 @@
   },
   "driftwood-wardens/idle/2": {
    "frame": {
-    "x": 0,
-    "y": 100,
+    "x": 900,
+    "y": 50,
     "w": 48,
     "h": 48
    },
@@ -904,8 +860,8 @@
   },
   "driftwood-wardens/idle/3": {
    "frame": {
-    "x": 50,
-    "y": 100,
+    "x": 950,
+    "y": 50,
     "w": 48,
     "h": 48
    },
@@ -926,7 +882,7 @@
   },
   "driftwood-wardens/attack/0": {
    "frame": {
-    "x": 100,
+    "x": 0,
     "y": 100,
     "w": 48,
     "h": 48
@@ -948,7 +904,7 @@
   },
   "driftwood-wardens/attack/1": {
    "frame": {
-    "x": 150,
+    "x": 50,
     "y": 100,
     "w": 48,
     "h": 48
@@ -970,7 +926,7 @@
   },
   "driftwood-wardens/attack/2": {
    "frame": {
-    "x": 200,
+    "x": 100,
     "y": 100,
     "w": 48,
     "h": 48
@@ -992,7 +948,7 @@
   },
   "driftwood-wardens/attack/3": {
    "frame": {
-    "x": 250,
+    "x": 150,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1014,7 +970,7 @@
   },
   "driftwood-wardens/attack/4": {
    "frame": {
-    "x": 300,
+    "x": 200,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1036,7 +992,7 @@
   },
   "driftwood-wardens/attack/5": {
    "frame": {
-    "x": 350,
+    "x": 250,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1058,7 +1014,7 @@
   },
   "driftwood-wardens/hit/0": {
    "frame": {
-    "x": 400,
+    "x": 300,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1080,7 +1036,7 @@
   },
   "driftwood-wardens/hit/1": {
    "frame": {
-    "x": 450,
+    "x": 350,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1102,7 +1058,7 @@
   },
   "driftwood-wardens/death/0": {
    "frame": {
-    "x": 500,
+    "x": 400,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1124,7 +1080,7 @@
   },
   "driftwood-wardens/death/1": {
    "frame": {
-    "x": 550,
+    "x": 450,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1146,7 +1102,7 @@
   },
   "driftwood-wardens/death/2": {
    "frame": {
-    "x": 600,
+    "x": 500,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1168,7 +1124,7 @@
   },
   "driftwood-wardens/death/3": {
    "frame": {
-    "x": 650,
+    "x": 550,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1190,7 +1146,7 @@
   },
   "driftwood-wardens/death/4": {
    "frame": {
-    "x": 700,
+    "x": 600,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1212,29 +1168,7 @@
   },
   "driftwood-wardens/death/5": {
    "frame": {
-    "x": 750,
-    "y": 100,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "driftwood-wardens/mini/0": {
-   "frame": {
-    "x": 800,
+    "x": 650,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1256,7 +1190,7 @@
   },
   "castaway-archers/idle/0": {
    "frame": {
-    "x": 850,
+    "x": 700,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1278,7 +1212,7 @@
   },
   "castaway-archers/idle/1": {
    "frame": {
-    "x": 900,
+    "x": 750,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1300,7 +1234,7 @@
   },
   "castaway-archers/idle/2": {
    "frame": {
-    "x": 950,
+    "x": 800,
     "y": 100,
     "w": 48,
     "h": 48
@@ -1322,8 +1256,8 @@
   },
   "castaway-archers/idle/3": {
    "frame": {
-    "x": 0,
-    "y": 150,
+    "x": 850,
+    "y": 100,
     "w": 48,
     "h": 48
    },
@@ -1344,8 +1278,8 @@
   },
   "castaway-archers/attack/0": {
    "frame": {
-    "x": 50,
-    "y": 150,
+    "x": 900,
+    "y": 100,
     "w": 48,
     "h": 48
    },
@@ -1366,8 +1300,8 @@
   },
   "castaway-archers/attack/1": {
    "frame": {
-    "x": 100,
-    "y": 150,
+    "x": 950,
+    "y": 100,
     "w": 48,
     "h": 48
    },
@@ -1388,7 +1322,7 @@
   },
   "castaway-archers/attack/2": {
    "frame": {
-    "x": 150,
+    "x": 0,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1410,7 +1344,7 @@
   },
   "castaway-archers/attack/3": {
    "frame": {
-    "x": 200,
+    "x": 50,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1432,7 +1366,7 @@
   },
   "castaway-archers/attack/4": {
    "frame": {
-    "x": 250,
+    "x": 100,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1454,7 +1388,7 @@
   },
   "castaway-archers/attack/5": {
    "frame": {
-    "x": 300,
+    "x": 150,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1476,7 +1410,7 @@
   },
   "castaway-archers/hit/0": {
    "frame": {
-    "x": 350,
+    "x": 200,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1498,7 +1432,7 @@
   },
   "castaway-archers/hit/1": {
    "frame": {
-    "x": 400,
+    "x": 250,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1520,7 +1454,7 @@
   },
   "castaway-archers/death/0": {
    "frame": {
-    "x": 450,
+    "x": 300,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1542,7 +1476,7 @@
   },
   "castaway-archers/death/1": {
    "frame": {
-    "x": 500,
+    "x": 350,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1564,7 +1498,7 @@
   },
   "castaway-archers/death/2": {
    "frame": {
-    "x": 550,
+    "x": 400,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1586,7 +1520,7 @@
   },
   "castaway-archers/death/3": {
    "frame": {
-    "x": 600,
+    "x": 450,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1608,7 +1542,7 @@
   },
   "castaway-archers/death/4": {
    "frame": {
-    "x": 650,
+    "x": 500,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1630,29 +1564,7 @@
   },
   "castaway-archers/death/5": {
    "frame": {
-    "x": 700,
-    "y": 150,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "castaway-archers/mini/0": {
-   "frame": {
-    "x": 750,
+    "x": 550,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1674,7 +1586,7 @@
   },
   "tide-mystics/idle/0": {
    "frame": {
-    "x": 800,
+    "x": 600,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1696,7 +1608,7 @@
   },
   "tide-mystics/idle/1": {
    "frame": {
-    "x": 850,
+    "x": 650,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1718,7 +1630,7 @@
   },
   "tide-mystics/idle/2": {
    "frame": {
-    "x": 900,
+    "x": 700,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1740,7 +1652,7 @@
   },
   "tide-mystics/idle/3": {
    "frame": {
-    "x": 950,
+    "x": 750,
     "y": 150,
     "w": 48,
     "h": 48
@@ -1762,8 +1674,8 @@
   },
   "tide-mystics/attack/0": {
    "frame": {
-    "x": 0,
-    "y": 200,
+    "x": 800,
+    "y": 150,
     "w": 48,
     "h": 48
    },
@@ -1784,8 +1696,8 @@
   },
   "tide-mystics/attack/1": {
    "frame": {
-    "x": 50,
-    "y": 200,
+    "x": 850,
+    "y": 150,
     "w": 48,
     "h": 48
    },
@@ -1806,8 +1718,8 @@
   },
   "tide-mystics/attack/2": {
    "frame": {
-    "x": 100,
-    "y": 200,
+    "x": 900,
+    "y": 150,
     "w": 48,
     "h": 48
    },
@@ -1828,8 +1740,8 @@
   },
   "tide-mystics/attack/3": {
    "frame": {
-    "x": 150,
-    "y": 200,
+    "x": 950,
+    "y": 150,
     "w": 48,
     "h": 48
    },
@@ -1850,7 +1762,7 @@
   },
   "tide-mystics/attack/4": {
    "frame": {
-    "x": 200,
+    "x": 0,
     "y": 200,
     "w": 48,
     "h": 48
@@ -1872,7 +1784,7 @@
   },
   "tide-mystics/attack/5": {
    "frame": {
-    "x": 250,
+    "x": 50,
     "y": 200,
     "w": 48,
     "h": 48
@@ -1894,7 +1806,7 @@
   },
   "tide-mystics/hit/0": {
    "frame": {
-    "x": 300,
+    "x": 100,
     "y": 200,
     "w": 48,
     "h": 48
@@ -1916,7 +1828,7 @@
   },
   "tide-mystics/hit/1": {
    "frame": {
-    "x": 350,
+    "x": 150,
     "y": 200,
     "w": 48,
     "h": 48
@@ -1938,7 +1850,7 @@
   },
   "tide-mystics/death/0": {
    "frame": {
-    "x": 400,
+    "x": 200,
     "y": 200,
     "w": 48,
     "h": 48
@@ -1960,7 +1872,7 @@
   },
   "tide-mystics/death/1": {
    "frame": {
-    "x": 450,
+    "x": 250,
     "y": 200,
     "w": 48,
     "h": 48
@@ -1982,7 +1894,7 @@
   },
   "tide-mystics/death/2": {
    "frame": {
-    "x": 500,
+    "x": 300,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2004,7 +1916,7 @@
   },
   "tide-mystics/death/3": {
    "frame": {
-    "x": 550,
+    "x": 350,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2026,7 +1938,7 @@
   },
   "tide-mystics/death/4": {
    "frame": {
-    "x": 600,
+    "x": 400,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2048,29 +1960,7 @@
   },
   "tide-mystics/death/5": {
    "frame": {
-    "x": 650,
-    "y": 200,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "tide-mystics/mini/0": {
-   "frame": {
-    "x": 700,
+    "x": 450,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2092,7 +1982,7 @@
   },
   "wreck-bandit/idle/0": {
    "frame": {
-    "x": 750,
+    "x": 500,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2114,7 +2004,7 @@
   },
   "wreck-bandit/idle/1": {
    "frame": {
-    "x": 800,
+    "x": 550,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2136,7 +2026,7 @@
   },
   "wreck-bandit/idle/2": {
    "frame": {
-    "x": 850,
+    "x": 600,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2158,7 +2048,7 @@
   },
   "wreck-bandit/idle/3": {
    "frame": {
-    "x": 900,
+    "x": 650,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2180,7 +2070,7 @@
   },
   "wreck-bandit/attack/0": {
    "frame": {
-    "x": 950,
+    "x": 700,
     "y": 200,
     "w": 48,
     "h": 48
@@ -2202,8 +2092,8 @@
   },
   "wreck-bandit/attack/1": {
    "frame": {
-    "x": 0,
-    "y": 250,
+    "x": 750,
+    "y": 200,
     "w": 48,
     "h": 48
    },
@@ -2224,8 +2114,8 @@
   },
   "wreck-bandit/attack/2": {
    "frame": {
-    "x": 50,
-    "y": 250,
+    "x": 800,
+    "y": 200,
     "w": 48,
     "h": 48
    },
@@ -2246,8 +2136,8 @@
   },
   "wreck-bandit/attack/3": {
    "frame": {
-    "x": 100,
-    "y": 250,
+    "x": 850,
+    "y": 200,
     "w": 48,
     "h": 48
    },
@@ -2268,8 +2158,8 @@
   },
   "wreck-bandit/attack/4": {
    "frame": {
-    "x": 150,
-    "y": 250,
+    "x": 900,
+    "y": 200,
     "w": 48,
     "h": 48
    },
@@ -2290,8 +2180,8 @@
   },
   "wreck-bandit/attack/5": {
    "frame": {
-    "x": 200,
-    "y": 250,
+    "x": 950,
+    "y": 200,
     "w": 48,
     "h": 48
    },
@@ -2312,7 +2202,7 @@
   },
   "wreck-bandit/hit/0": {
    "frame": {
-    "x": 250,
+    "x": 0,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2334,7 +2224,7 @@
   },
   "wreck-bandit/hit/1": {
    "frame": {
-    "x": 300,
+    "x": 50,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2356,7 +2246,7 @@
   },
   "wreck-bandit/death/0": {
    "frame": {
-    "x": 350,
+    "x": 100,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2378,7 +2268,7 @@
   },
   "wreck-bandit/death/1": {
    "frame": {
-    "x": 400,
+    "x": 150,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2400,7 +2290,7 @@
   },
   "wreck-bandit/death/2": {
    "frame": {
-    "x": 450,
+    "x": 200,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2422,7 +2312,7 @@
   },
   "wreck-bandit/death/3": {
    "frame": {
-    "x": 500,
+    "x": 250,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2444,7 +2334,7 @@
   },
   "wreck-bandit/death/4": {
    "frame": {
-    "x": 550,
+    "x": 300,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2466,29 +2356,7 @@
   },
   "wreck-bandit/death/5": {
    "frame": {
-    "x": 600,
-    "y": 250,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "wreck-bandit/mini/0": {
-   "frame": {
-    "x": 650,
+    "x": 350,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2510,7 +2378,7 @@
   },
   "skull-gunner/idle/0": {
    "frame": {
-    "x": 700,
+    "x": 400,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2532,7 +2400,7 @@
   },
   "skull-gunner/idle/1": {
    "frame": {
-    "x": 750,
+    "x": 450,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2554,7 +2422,7 @@
   },
   "skull-gunner/idle/2": {
    "frame": {
-    "x": 800,
+    "x": 500,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2576,7 +2444,7 @@
   },
   "skull-gunner/idle/3": {
    "frame": {
-    "x": 850,
+    "x": 550,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2598,7 +2466,7 @@
   },
   "skull-gunner/attack/0": {
    "frame": {
-    "x": 900,
+    "x": 600,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2620,7 +2488,7 @@
   },
   "skull-gunner/attack/1": {
    "frame": {
-    "x": 950,
+    "x": 650,
     "y": 250,
     "w": 48,
     "h": 48
@@ -2642,8 +2510,8 @@
   },
   "skull-gunner/attack/2": {
    "frame": {
-    "x": 0,
-    "y": 300,
+    "x": 700,
+    "y": 250,
     "w": 48,
     "h": 48
    },
@@ -2664,8 +2532,8 @@
   },
   "skull-gunner/attack/3": {
    "frame": {
-    "x": 50,
-    "y": 300,
+    "x": 750,
+    "y": 250,
     "w": 48,
     "h": 48
    },
@@ -2686,8 +2554,8 @@
   },
   "skull-gunner/attack/4": {
    "frame": {
-    "x": 100,
-    "y": 300,
+    "x": 800,
+    "y": 250,
     "w": 48,
     "h": 48
    },
@@ -2708,8 +2576,8 @@
   },
   "skull-gunner/attack/5": {
    "frame": {
-    "x": 150,
-    "y": 300,
+    "x": 850,
+    "y": 250,
     "w": 48,
     "h": 48
    },
@@ -2730,8 +2598,8 @@
   },
   "skull-gunner/hit/0": {
    "frame": {
-    "x": 200,
-    "y": 300,
+    "x": 900,
+    "y": 250,
     "w": 48,
     "h": 48
    },
@@ -2752,8 +2620,8 @@
   },
   "skull-gunner/hit/1": {
    "frame": {
-    "x": 250,
-    "y": 300,
+    "x": 950,
+    "y": 250,
     "w": 48,
     "h": 48
    },
@@ -2774,7 +2642,7 @@
   },
   "skull-gunner/death/0": {
    "frame": {
-    "x": 300,
+    "x": 0,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2796,7 +2664,7 @@
   },
   "skull-gunner/death/1": {
    "frame": {
-    "x": 350,
+    "x": 50,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2818,7 +2686,7 @@
   },
   "skull-gunner/death/2": {
    "frame": {
-    "x": 400,
+    "x": 100,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2840,7 +2708,7 @@
   },
   "skull-gunner/death/3": {
    "frame": {
-    "x": 450,
+    "x": 150,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2862,7 +2730,7 @@
   },
   "skull-gunner/death/4": {
    "frame": {
-    "x": 500,
+    "x": 200,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2884,29 +2752,7 @@
   },
   "skull-gunner/death/5": {
    "frame": {
-    "x": 550,
-    "y": 300,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "skull-gunner/mini/0": {
-   "frame": {
-    "x": 600,
+    "x": 250,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2928,7 +2774,7 @@
   },
   "shore-crab/idle/0": {
    "frame": {
-    "x": 650,
+    "x": 300,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2950,7 +2796,7 @@
   },
   "shore-crab/idle/1": {
    "frame": {
-    "x": 700,
+    "x": 350,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2972,7 +2818,7 @@
   },
   "shore-crab/idle/2": {
    "frame": {
-    "x": 750,
+    "x": 400,
     "y": 300,
     "w": 48,
     "h": 48
@@ -2994,7 +2840,7 @@
   },
   "shore-crab/idle/3": {
    "frame": {
-    "x": 800,
+    "x": 450,
     "y": 300,
     "w": 48,
     "h": 48
@@ -3016,7 +2862,7 @@
   },
   "shore-crab/attack/0": {
    "frame": {
-    "x": 850,
+    "x": 500,
     "y": 300,
     "w": 48,
     "h": 48
@@ -3038,7 +2884,7 @@
   },
   "shore-crab/attack/1": {
    "frame": {
-    "x": 900,
+    "x": 550,
     "y": 300,
     "w": 48,
     "h": 48
@@ -3060,7 +2906,7 @@
   },
   "shore-crab/attack/2": {
    "frame": {
-    "x": 950,
+    "x": 600,
     "y": 300,
     "w": 48,
     "h": 48
@@ -3082,8 +2928,8 @@
   },
   "shore-crab/attack/3": {
    "frame": {
-    "x": 0,
-    "y": 350,
+    "x": 650,
+    "y": 300,
     "w": 48,
     "h": 48
    },
@@ -3104,8 +2950,8 @@
   },
   "shore-crab/attack/4": {
    "frame": {
-    "x": 50,
-    "y": 350,
+    "x": 700,
+    "y": 300,
     "w": 48,
     "h": 48
    },
@@ -3126,8 +2972,8 @@
   },
   "shore-crab/attack/5": {
    "frame": {
-    "x": 100,
-    "y": 350,
+    "x": 750,
+    "y": 300,
     "w": 48,
     "h": 48
    },
@@ -3148,8 +2994,8 @@
   },
   "shore-crab/hit/0": {
    "frame": {
-    "x": 150,
-    "y": 350,
+    "x": 800,
+    "y": 300,
     "w": 48,
     "h": 48
    },
@@ -3170,8 +3016,8 @@
   },
   "shore-crab/hit/1": {
    "frame": {
-    "x": 200,
-    "y": 350,
+    "x": 850,
+    "y": 300,
     "w": 48,
     "h": 48
    },
@@ -3192,8 +3038,8 @@
   },
   "shore-crab/death/0": {
    "frame": {
-    "x": 250,
-    "y": 350,
+    "x": 900,
+    "y": 300,
     "w": 48,
     "h": 48
    },
@@ -3214,8 +3060,8 @@
   },
   "shore-crab/death/1": {
    "frame": {
-    "x": 300,
-    "y": 350,
+    "x": 950,
+    "y": 300,
     "w": 48,
     "h": 48
    },
@@ -3236,7 +3082,7 @@
   },
   "shore-crab/death/2": {
    "frame": {
-    "x": 350,
+    "x": 0,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3258,7 +3104,7 @@
   },
   "shore-crab/death/3": {
    "frame": {
-    "x": 400,
+    "x": 50,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3280,7 +3126,7 @@
   },
   "shore-crab/death/4": {
    "frame": {
-    "x": 450,
+    "x": 100,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3302,29 +3148,7 @@
   },
   "shore-crab/death/5": {
    "frame": {
-    "x": 500,
-    "y": 350,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "shore-crab/mini/0": {
-   "frame": {
-    "x": 550,
+    "x": 150,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3346,7 +3170,7 @@
   },
   "coast-wolf/idle/0": {
    "frame": {
-    "x": 600,
+    "x": 200,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3368,7 +3192,7 @@
   },
   "coast-wolf/idle/1": {
    "frame": {
-    "x": 650,
+    "x": 250,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3390,7 +3214,7 @@
   },
   "coast-wolf/idle/2": {
    "frame": {
-    "x": 700,
+    "x": 300,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3412,7 +3236,7 @@
   },
   "coast-wolf/idle/3": {
    "frame": {
-    "x": 750,
+    "x": 350,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3434,7 +3258,7 @@
   },
   "coast-wolf/attack/0": {
    "frame": {
-    "x": 800,
+    "x": 400,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3456,7 +3280,7 @@
   },
   "coast-wolf/attack/1": {
    "frame": {
-    "x": 850,
+    "x": 450,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3478,7 +3302,7 @@
   },
   "coast-wolf/attack/2": {
    "frame": {
-    "x": 900,
+    "x": 500,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3500,7 +3324,7 @@
   },
   "coast-wolf/attack/3": {
    "frame": {
-    "x": 950,
+    "x": 550,
     "y": 350,
     "w": 48,
     "h": 48
@@ -3522,8 +3346,8 @@
   },
   "coast-wolf/attack/4": {
    "frame": {
-    "x": 0,
-    "y": 400,
+    "x": 600,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3544,8 +3368,8 @@
   },
   "coast-wolf/attack/5": {
    "frame": {
-    "x": 50,
-    "y": 400,
+    "x": 650,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3566,8 +3390,8 @@
   },
   "coast-wolf/hit/0": {
    "frame": {
-    "x": 100,
-    "y": 400,
+    "x": 700,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3588,8 +3412,8 @@
   },
   "coast-wolf/hit/1": {
    "frame": {
-    "x": 150,
-    "y": 400,
+    "x": 750,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3610,8 +3434,8 @@
   },
   "coast-wolf/death/0": {
    "frame": {
-    "x": 200,
-    "y": 400,
+    "x": 800,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3632,8 +3456,8 @@
   },
   "coast-wolf/death/1": {
    "frame": {
-    "x": 250,
-    "y": 400,
+    "x": 850,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3654,8 +3478,8 @@
   },
   "coast-wolf/death/2": {
    "frame": {
-    "x": 300,
-    "y": 400,
+    "x": 900,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3676,8 +3500,8 @@
   },
   "coast-wolf/death/3": {
    "frame": {
-    "x": 350,
-    "y": 400,
+    "x": 950,
+    "y": 350,
     "w": 48,
     "h": 48
    },
@@ -3698,7 +3522,7 @@
   },
   "coast-wolf/death/4": {
    "frame": {
-    "x": 400,
+    "x": 0,
     "y": 400,
     "w": 48,
     "h": 48
@@ -3720,29 +3544,7 @@
   },
   "coast-wolf/death/5": {
    "frame": {
-    "x": 450,
-    "y": 400,
-    "w": 48,
-    "h": 48
-   },
-   "sourceSize": {
-    "w": 48,
-    "h": 48
-   },
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-   },
-   "anchor": {
-    "x": 0.5,
-    "y": 0.9375
-   }
-  },
-  "coast-wolf/mini/0": {
-   "frame": {
-    "x": 500,
+    "x": 50,
     "y": 400,
     "w": 48,
     "h": 48
@@ -3764,8 +3566,8 @@
   },
   "shadow/0": {
    "frame": {
-    "x": 244,
-    "y": 450,
+    "x": 806,
+    "y": 400,
     "w": 26,
     "h": 8
    },
@@ -3786,7 +3588,7 @@
   },
   "fx/slash/0": {
    "frame": {
-    "x": 550,
+    "x": 100,
     "y": 400,
     "w": 32,
     "h": 32
@@ -3808,7 +3610,7 @@
   },
   "fx/slash/1": {
    "frame": {
-    "x": 584,
+    "x": 134,
     "y": 400,
     "w": 32,
     "h": 32
@@ -3830,7 +3632,7 @@
   },
   "fx/slash/2": {
    "frame": {
-    "x": 618,
+    "x": 168,
     "y": 400,
     "w": 32,
     "h": 32
@@ -3852,7 +3654,7 @@
   },
   "fx/slash/3": {
    "frame": {
-    "x": 652,
+    "x": 202,
     "y": 400,
     "w": 32,
     "h": 32
@@ -3874,7 +3676,7 @@
   },
   "fx/slash/4": {
    "frame": {
-    "x": 686,
+    "x": 236,
     "y": 400,
     "w": 32,
     "h": 32
@@ -3896,7 +3698,7 @@
   },
   "fx/spark/0": {
    "frame": {
-    "x": 890,
+    "x": 440,
     "y": 400,
     "w": 20,
     "h": 20
@@ -3918,7 +3720,7 @@
   },
   "fx/spark/1": {
    "frame": {
-    "x": 912,
+    "x": 462,
     "y": 400,
     "w": 20,
     "h": 20
@@ -3940,7 +3742,7 @@
   },
   "fx/spark/2": {
    "frame": {
-    "x": 934,
+    "x": 484,
     "y": 400,
     "w": 20,
     "h": 20
@@ -3962,7 +3764,7 @@
   },
   "fx/spark/3": {
    "frame": {
-    "x": 956,
+    "x": 506,
     "y": 400,
     "w": 20,
     "h": 20
@@ -3984,7 +3786,7 @@
   },
   "fx/magic/0": {
    "frame": {
-    "x": 720,
+    "x": 270,
     "y": 400,
     "w": 32,
     "h": 32
@@ -4006,7 +3808,7 @@
   },
   "fx/magic/1": {
    "frame": {
-    "x": 754,
+    "x": 304,
     "y": 400,
     "w": 32,
     "h": 32
@@ -4028,7 +3830,7 @@
   },
   "fx/magic/2": {
    "frame": {
-    "x": 788,
+    "x": 338,
     "y": 400,
     "w": 32,
     "h": 32
@@ -4050,7 +3852,7 @@
   },
   "fx/magic/3": {
    "frame": {
-    "x": 822,
+    "x": 372,
     "y": 400,
     "w": 32,
     "h": 32
@@ -4072,7 +3874,7 @@
   },
   "fx/magic/4": {
    "frame": {
-    "x": 856,
+    "x": 406,
     "y": 400,
     "w": 32,
     "h": 32
@@ -4094,8 +3896,8 @@
   },
   "fx/arrow/0": {
    "frame": {
-    "x": 293,
-    "y": 450,
+    "x": 855,
+    "y": 400,
     "w": 16,
     "h": 5
    },
@@ -4116,8 +3918,8 @@
   },
   "fx/bolt/0": {
    "frame": {
-    "x": 169,
-    "y": 450,
+    "x": 731,
+    "y": 400,
     "w": 14,
     "h": 10
    },
@@ -4138,8 +3940,8 @@
   },
   "fx/bolt/1": {
    "frame": {
-    "x": 185,
-    "y": 450,
+    "x": 747,
+    "y": 400,
     "w": 14,
     "h": 10
    },
@@ -4160,8 +3962,8 @@
   },
   "fx/ball/0": {
    "frame": {
-    "x": 283,
-    "y": 450,
+    "x": 845,
+    "y": 400,
     "w": 8,
     "h": 6
    },
@@ -4182,7 +3984,7 @@
   },
   "fx/dust/0": {
    "frame": {
-    "x": 978,
+    "x": 528,
     "y": 400,
     "w": 32,
     "h": 16
@@ -4204,8 +4006,8 @@
   },
   "fx/dust/1": {
    "frame": {
-    "x": 0,
-    "y": 450,
+    "x": 562,
+    "y": 400,
     "w": 32,
     "h": 16
    },
@@ -4226,8 +4028,8 @@
   },
   "fx/dust/2": {
    "frame": {
-    "x": 34,
-    "y": 450,
+    "x": 596,
+    "y": 400,
     "w": 32,
     "h": 16
    },
@@ -4248,8 +4050,8 @@
   },
   "fx/dust/3": {
    "frame": {
-    "x": 68,
-    "y": 450,
+    "x": 630,
+    "y": 400,
     "w": 32,
     "h": 16
    },
@@ -4270,8 +4072,8 @@
   },
   "fx/dust/4": {
    "frame": {
-    "x": 102,
-    "y": 450,
+    "x": 664,
+    "y": 400,
     "w": 32,
     "h": 16
    },
@@ -4292,8 +4094,8 @@
   },
   "deco/shell/0": {
    "frame": {
-    "x": 272,
-    "y": 450,
+    "x": 834,
+    "y": 400,
     "w": 9,
     "h": 8
    },
@@ -4314,8 +4116,8 @@
   },
   "deco/starfish/0": {
    "frame": {
-    "x": 156,
-    "y": 450,
+    "x": 718,
+    "y": 400,
     "w": 11,
     "h": 11
    },
@@ -4336,8 +4138,8 @@
   },
   "deco/rock/0": {
    "frame": {
-    "x": 136,
-    "y": 450,
+    "x": 698,
+    "y": 400,
     "w": 18,
     "h": 13
    },
@@ -4358,8 +4160,8 @@
   },
   "deco/driftwood/0": {
    "frame": {
-    "x": 216,
-    "y": 450,
+    "x": 778,
+    "y": 400,
     "w": 26,
     "h": 9
    },
@@ -4380,8 +4182,8 @@
   },
   "deco/weed/0": {
    "frame": {
-    "x": 201,
-    "y": 450,
+    "x": 763,
+    "y": 400,
     "w": 13,
     "h": 10
    },
@@ -4428,9 +4230,6 @@
    "bosun-marla/death/4",
    "bosun-marla/death/5"
   ],
-  "bosun-marla/mini": [
-   "bosun-marla/mini/0"
-  ],
   "gull-deckhands/idle": [
    "gull-deckhands/idle/0",
    "gull-deckhands/idle/1",
@@ -4456,9 +4255,6 @@
    "gull-deckhands/death/3",
    "gull-deckhands/death/4",
    "gull-deckhands/death/5"
-  ],
-  "gull-deckhands/mini": [
-   "gull-deckhands/mini/0"
   ],
   "driftwood-wardens/idle": [
    "driftwood-wardens/idle/0",
@@ -4486,9 +4282,6 @@
    "driftwood-wardens/death/4",
    "driftwood-wardens/death/5"
   ],
-  "driftwood-wardens/mini": [
-   "driftwood-wardens/mini/0"
-  ],
   "castaway-archers/idle": [
    "castaway-archers/idle/0",
    "castaway-archers/idle/1",
@@ -4514,9 +4307,6 @@
    "castaway-archers/death/3",
    "castaway-archers/death/4",
    "castaway-archers/death/5"
-  ],
-  "castaway-archers/mini": [
-   "castaway-archers/mini/0"
   ],
   "tide-mystics/idle": [
    "tide-mystics/idle/0",
@@ -4544,9 +4334,6 @@
    "tide-mystics/death/4",
    "tide-mystics/death/5"
   ],
-  "tide-mystics/mini": [
-   "tide-mystics/mini/0"
-  ],
   "wreck-bandit/idle": [
    "wreck-bandit/idle/0",
    "wreck-bandit/idle/1",
@@ -4572,9 +4359,6 @@
    "wreck-bandit/death/3",
    "wreck-bandit/death/4",
    "wreck-bandit/death/5"
-  ],
-  "wreck-bandit/mini": [
-   "wreck-bandit/mini/0"
   ],
   "skull-gunner/idle": [
    "skull-gunner/idle/0",
@@ -4602,9 +4386,6 @@
    "skull-gunner/death/4",
    "skull-gunner/death/5"
   ],
-  "skull-gunner/mini": [
-   "skull-gunner/mini/0"
-  ],
   "shore-crab/idle": [
    "shore-crab/idle/0",
    "shore-crab/idle/1",
@@ -4631,9 +4412,6 @@
    "shore-crab/death/4",
    "shore-crab/death/5"
   ],
-  "shore-crab/mini": [
-   "shore-crab/mini/0"
-  ],
   "coast-wolf/idle": [
    "coast-wolf/idle/0",
    "coast-wolf/idle/1",
@@ -4659,9 +4437,6 @@
    "coast-wolf/death/3",
    "coast-wolf/death/4",
    "coast-wolf/death/5"
-  ],
-  "coast-wolf/mini": [
-   "coast-wolf/mini/0"
   ],
   "shadow": [
    "shadow/0"
@@ -4725,7 +4500,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 1024,
-   "h": 466
+   "h": 448
   },
   "scale": "1"
  }

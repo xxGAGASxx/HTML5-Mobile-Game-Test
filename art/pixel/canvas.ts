@@ -228,16 +228,6 @@ export class PixelCanvas {
     return out;
   }
 
-  /** Grows the filled area by `r` pixels (8-neighbourhood) in one colour: a sticker or card backing. */
-  dilate(r: number, c: string): PixelCanvas {
-    const out = new PixelCanvas(this.w, this.h);
-    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
-      if (!this.get(x, y)) continue;
-      for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) out.set(x + i, y + j, c);
-    }
-    return out;
-  }
-
   /** Replaces every filled pixel's colour (used for the white hit flash frame). */
   map(fn: (c: string) => string): PixelCanvas {
     const out = new PixelCanvas(this.w, this.h);
