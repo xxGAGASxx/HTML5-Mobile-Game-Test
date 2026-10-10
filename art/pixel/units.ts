@@ -81,6 +81,19 @@ const RECIPES: Record<string, Recipe> = {
     boots: RAMPS.leather,
     weapon: 'cutlass',
   },
+  // Wreck Coast boss: the Bandit Chief, red coat, gold trim and a tricorn.
+  'bandit-chief': {
+    skin: RAMPS.skinTan,
+    hair: { style: 'long', ramp: RAMPS.hairDark },
+    headgear: { kind: 'tricorn', ramp: RAMPS.red, trim: RAMPS.gold },
+    torso: { style: 'coat', ramp: RAMPS.red, accent: RAMPS.gold },
+    cape: RAMPS.dark,
+    belt: RAMPS.gold,
+    legs: RAMPS.dark,
+    boots: RAMPS.leather,
+    weapon: 'cutlass',
+    shield: { kind: 'round', ramp: RAMPS.steel, accent: RAMPS.red },
+  },
   // Enemy shooter: skeleton pirate with a musket (undead palette, blood-red accent).
   'skull-gunner': {
     skin: RAMPS.bone,
@@ -247,6 +260,11 @@ function creatureFrames(draw: (p: CreaturePose) => PixelCanvas): UnitFrames {
     hit: [draw({ y: 0, x: -2, eyes: 'closed' }), draw({ y: 0, x: -1, eyes: 'closed' })],
     death: [draw({ y: 0, x: -2, eyes: 'closed' }), kneel, draw({ y: 3, eyes: 'closed' }), down, down.dissolve(0.4), down.dissolve(0.75)],
   };
+}
+
+/** The bosun's idle loop with a white edge, for the party token on the world map. */
+export function buildPartyToken(): PixelCanvas[] {
+  return meleePoses().idle.map((p) => drawHumanoid(RECIPES['bosun-marla']!, p, '#ffffff'));
 }
 
 export function buildUnits(): Map<string, UnitFrames> {

@@ -10,15 +10,24 @@ export const ENEMY_BOUNTY: Readonly<Record<string, Resources>> = {
   'wreck-bandit': { gold: 10, food: 2 },
   'coast-wolf': { gold: 6, food: 6 },
   'skull-gunner': { gold: 12, food: 2 },
+  'bandit-chief': { gold: 60, food: 20 },
 };
 
-/** Extra loot for clearing a wave (wins only). */
-export function clearBonus(wave: number): Resources {
-  return { gold: 15 + 5 * wave, food: 5 + 2 * wave };
+/** Extra loot for winning a battle at a node of this tier (wins only). */
+export function clearBonus(tier: number): Resources {
+  return { gold: 15 + 5 * tier, food: 5 + 2 * tier };
 }
 
-/** Income grows a little each wave so later waves keep paying for hires. */
-export const LOOT_GROWTH_PER_WAVE = 1.08;
+/** Income grows a little each tier so deeper nodes keep paying for hires. */
+export const LOOT_GROWTH_PER_TIER = 1.08;
+
+/** Chest at the bottom of a ruin. */
+export function ruinTreasure(tier: number): Resources {
+  return { gold: 60 * tier, food: 20 * tier };
+}
+
+/** Auto-clearing a Trivial node pays half its loot (GDD 04). */
+export const AUTO_CLEAR_SHARE = 0.5;
 
 /** Tavern stock: what can be hired, and the base price of the first copy. */
 export const TAVERN: readonly { typeId: string; base: Resources }[] = [

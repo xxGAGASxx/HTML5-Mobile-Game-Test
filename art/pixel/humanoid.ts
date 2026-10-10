@@ -44,7 +44,7 @@ export interface Pose {
 
 const dir = (deg: number): [number, number] => [Math.sin((deg * Math.PI) / 180), -Math.cos((deg * Math.PI) / 180)];
 
-export function drawHumanoid(r: Recipe, p: Pose): PixelCanvas {
+export function drawHumanoid(r: Recipe, p: Pose, edge = OUTLINE): PixelCanvas {
   const c = new PixelCanvas(CELL, CELL);
   const crouch = p.crouch ?? 0;
   const bx = p.bodyX ?? 0;
@@ -126,7 +126,7 @@ export function drawHumanoid(r: Recipe, p: Pose): PixelCanvas {
   arm(c, tx + 5, tTop + 1, hx, hy, armRamp, r.skin);
   weapon(c, r.weapon, hx, hy, p.angle, p.power ?? 0, off);
 
-  c.outline(OUTLINE);
+  c.outline(edge);
   if (p.smear) smear(c, hx, hy, p.smear[0], p.smear[1], r.weapon === 'spear' ? 16 : 13);
   if (r.weapon === 'staff' && (p.power ?? 0) > 0) staffGlow(c, hx, hy, p.angle, p.power ?? 0);
   if (r.weapon === 'musket' && (p.power ?? 0) > 0) muzzle(c, hx, hy, p.angle, p.power ?? 0);

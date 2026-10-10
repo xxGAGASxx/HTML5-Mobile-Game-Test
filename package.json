@@ -14,6 +14,7 @@
   },
   "homepage": "https://github.com/xxGAGASxx/HTML5-Mobile-Game-Test#readme",
   "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "animejs": "^4.5.0",
     "pixi.js": "^8.22.0"
   },

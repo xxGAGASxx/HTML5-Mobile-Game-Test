@@ -1,16 +1,17 @@
 import { animate, type JSAnimation } from 'animejs';
 import { Graphics, Text } from 'pixi.js';
+import { FONT } from '../theme';
 import { Scene } from './Scene';
 
 /** Placeholder first screen proving PixiJS renders and AnimeJS tweens Pixi objects. */
 export class BootScene extends Scene {
   private readonly title = new Text({
     text: 'Wreckbound',
-    style: { fontFamily: 'monospace', fontSize: 48, fill: 0xf2e6c9, fontWeight: 'bold' },
+    style: { fontFamily: FONT, fontSize: 48, fill: 0xf2e6c9, fontWeight: 'bold' },
   });
   private readonly subtitle = new Text({
     text: 'Loading…',
-    style: { fontFamily: 'monospace', fontSize: 18, fill: 0x8fb3c4 },
+    style: { fontFamily: FONT, fontSize: 18, fill: 0x8fb3c4 },
   });
   private readonly marker = new Graphics().rect(-12, -12, 24, 24).fill(0xe0a050);
   private readonly tweens: JSAnimation[] = [];

@@ -1,14 +1,19 @@
 // Builds the game's pixel-art sprites from the sources in art/pixel/.
-//   npm run sprites                 -> public/assets/sprites/pixel.png + pixel.json, ground-*.png
-//   npm run sprites -- --preview D  -> also writes an x4 contact sheet to directory D
+//   npm run sprites                 -> public/assets/sprites/pixel.png + pixel.json, ground-*.png,
+//                                      public/assets/maps/<region>.png + .json (baked island maps)
+//   npm run sprites -- --preview D  -> also writes x4 contact sheets and an x3 map to directory D
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { PixelCanvas } from '../art/pixel/canvas.ts';
 import { buildDeco, buildFx, buildGround } from '../art/pixel/fx.ts';
-import { ANIMS, buildUnits } from '../art/pixel/units.ts';
+import { WRECK_COAST_DESIGN, bakeIsland } from '../art/pixel/island.ts';
+import { buildMapSprites } from '../art/pixel/mapSprites.ts';
+import { WRECK_COAST } from '../src/data/regions/wreckCoast.ts';
+import { ANIMS, buildPartyToken, buildUnits } from '../art/pixel/units.ts';
 
 const OUT = join(import.meta.dirname, '..', 'public', 'assets', 'sprites');
+const MAPS_OUT = join(import.meta.dirname, '..', 'public', 'assets', 'maps');
 const ATLAS_WIDTH = 1024;
 const PAD = 2;
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
@@ -36,8 +41,10 @@ function add(key: string, list: PixelCanvas[], anchor: { x: number; y: number })
 
 // Units: feet on row 44 of a 48 px cell, so anchor at the feet.
 for (const [id, anims] of buildUnits()) for (const anim of ANIMS) add(`${id}/${anim}`, anims[anim], { x: 0.5, y: 45 / 48 });
+add('map/party/idle', buildPartyToken(), { x: 0.5, y: 45 / 48 });
 for (const [key, list] of buildFx()) add(key, list, { x: 0.5, y: 0.5 });
 for (const [key, list] of buildDeco()) add(key, list, { x: 0.5, y: 1 });
+for (const [key, list] of buildMapSprites()) add(key, list, { x: 0.5, y: 0.5 });
 
 // Shelf packing, tallest first.
 const placed = [...frames].sort((a, b) => b.canvas.h - a.canvas.h);
@@ -76,6 +83,16 @@ writeFileSync(join(OUT, 'pixel.json'), JSON.stringify(json, null, 1) + '\n');
 for (const [name, tile] of buildGround()) writeFileSync(join(OUT, `ground-${name}.png`), png(tile));
 console.log(`pixel.png ${atlas.w}x${atlas.h}, ${frames.length} frames, ${Object.keys(animations).length} animations`);
 
+// Island maps: one baked PNG per region plus where its nodes, fires and water glints are.
+mkdirSync(MAPS_OUT, { recursive: true });
+const island = bakeIsland(WRECK_COAST, WRECK_COAST_DESIGN);
+writeFileSync(join(MAPS_OUT, `${WRECK_COAST.id}.png`), png(island.canvas));
+writeFileSync(
+  join(MAPS_OUT, `${WRECK_COAST.id}.json`),
+  JSON.stringify({ width: island.canvas.w, height: island.canvas.h, nodes: island.nodes, fires: island.fires, glints: island.glints, roads: island.roads }) + '\n',
+);
+console.log(`${WRECK_COAST.id}.png ${island.canvas.w}x${island.canvas.h}, ${Object.keys(island.nodes).length} nodes`);
+
 const previewIdx = process.argv.indexOf('--preview');
 if (previewIdx > 0) writePreview(process.argv[previewIdx + 1]!);
 
@@ -109,7 +126,20 @@ function writePreview(dir: string): void {
   fxBig.rect(0, 0, fxBig.w, fxBig.h, '#22303c');
   fxBig.blit(atlas, 0, 0);
   writeFileSync(join(dir, 'atlas-preview.png'), png(fxBig));
+  const map = new PixelCanvas(island.canvas.w, island.canvas.h);
+  map.rect(0, 0, map.w, map.h, '#0b1d2a');
+  map.blit(island.canvas, 0, 0);
+  writeFileSync(join(dir, 'map-preview.png'), png(upscale(map, 3)));
   console.log(`preview written to ${dir}`);
+}
+
+function upscale(src: PixelCanvas, scale: number): PixelCanvas {
+  const big = new PixelCanvas(src.w * scale, src.h * scale);
+  for (let j = 0; j < src.h; j++) for (let i = 0; i < src.w; i++) {
+    const c = src.get(i, j);
+    if (c) big.rect(i * scale, j * scale, scale, scale, c.slice(0, 7));
+  }
+  return big;
 }
 
 function png(c: PixelCanvas): Buffer {

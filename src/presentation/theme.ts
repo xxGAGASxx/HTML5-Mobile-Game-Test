@@ -1,6 +1,10 @@
 import type { Role } from '../domain/shared';
 
-export const FONT = 'monospace';
+/**
+ * Bundled with the game (see main.ts) so text measures and draws the same on every device;
+ * phone system monospace fonts often have no real bold and clip the last letter of a label.
+ */
+export const FONT = 'JetBrains Mono, monospace';
 
 export const COLORS = {
   background: 0x0b1d2a,

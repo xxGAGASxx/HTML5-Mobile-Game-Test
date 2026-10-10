@@ -2,7 +2,12 @@
 
 ## Pixel art
 
-Units, effects and battlefield tiles are self-made, generated from `art/pixel/` by `npm run sprites`.
+Units, effects, battlefield tiles and island maps are self-made, generated from `art/pixel/` by `npm run sprites`.
+
+## Font
+
+[JetBrains Mono](https://www.jetbrains.com/lp/mono/) by JetBrains, licensed under the
+[SIL Open Font License 1.1](https://openfontlicense.org), bundled through `@fontsource/jetbrains-mono`.
 
 ## Icons
 
@@ -13,7 +18,8 @@ the black background square was removed so the white silhouettes can be tinted i
 
 | Icon | Author |
 |---|---|
-| meat, crossed-swords, sword-clash | Lorc |
-| two-coins, camping-tent, fast-forward-button | Delapouite |
+| meat, crossed-swords, sword-clash, skull-crossed-bones, crowned-skull, treasure-map, hourglass, run | Lorc |
+| two-coins, camping-tent, fast-forward-button, ancient-ruins, fishing-pole, check-mark | Delapouite |
+| open-treasure-chest | Skoll |
 
 The camp screen shows a short attribution line; a full Credits screen comes with Settings (GDD 11).
