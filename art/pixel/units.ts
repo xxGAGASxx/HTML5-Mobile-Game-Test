@@ -262,6 +262,11 @@ function creatureFrames(draw: (p: CreaturePose) => PixelCanvas): UnitFrames {
   };
 }
 
+/** The bosun's idle loop with a white edge, for the party token on the world map. */
+export function buildPartyToken(): PixelCanvas[] {
+  return meleePoses().idle.map((p) => drawHumanoid(RECIPES['bosun-marla']!, p, '#ffffff'));
+}
+
 export function buildUnits(): Map<string, UnitFrames> {
   const out = new Map<string, UnitFrames>();
   for (const [id, recipe] of Object.entries(RECIPES)) out.set(id, humanoidFrames(recipe));

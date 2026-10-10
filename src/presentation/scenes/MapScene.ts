@@ -137,7 +137,8 @@ export class MapScene extends Scene {
     this.ground = new Sprite(map.texture);
     this.roads = new RoadNetwork(map.roads);
     this.partyPos = startingPosition(session.partyAt);
-    this.partyUnit = new PixelUnit(pixel, 'bosun-marla', () => 1, false);
+    // The bosun, edged in white so the token stands out on the island.
+    this.partyUnit = new PixelUnit(pixel, 'map/party', () => 1, false);
     this.party.addChild(this.partyUnit);
     this.world.addChild(this.ground, this.fx, this.markerLayer, this.party, this.fog);
 

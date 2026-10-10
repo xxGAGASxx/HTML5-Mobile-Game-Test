@@ -10,7 +10,7 @@ import { buildDeco, buildFx, buildGround } from '../art/pixel/fx.ts';
 import { WRECK_COAST_DESIGN, bakeIsland } from '../art/pixel/island.ts';
 import { buildMapSprites } from '../art/pixel/mapSprites.ts';
 import { WRECK_COAST } from '../src/data/regions/wreckCoast.ts';
-import { ANIMS, buildUnits } from '../art/pixel/units.ts';
+import { ANIMS, buildPartyToken, buildUnits } from '../art/pixel/units.ts';
 
 const OUT = join(import.meta.dirname, '..', 'public', 'assets', 'sprites');
 const MAPS_OUT = join(import.meta.dirname, '..', 'public', 'assets', 'maps');
@@ -41,6 +41,7 @@ function add(key: string, list: PixelCanvas[], anchor: { x: number; y: number })
 
 // Units: feet on row 44 of a 48 px cell, so anchor at the feet.
 for (const [id, anims] of buildUnits()) for (const anim of ANIMS) add(`${id}/${anim}`, anims[anim], { x: 0.5, y: 45 / 48 });
+add('map/party/idle', buildPartyToken(), { x: 0.5, y: 45 / 48 });
 for (const [key, list] of buildFx()) add(key, list, { x: 0.5, y: 0.5 });
 for (const [key, list] of buildDeco()) add(key, list, { x: 0.5, y: 1 });
 for (const [key, list] of buildMapSprites()) add(key, list, { x: 0.5, y: 0.5 });
