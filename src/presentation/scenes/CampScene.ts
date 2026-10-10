@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, Text } from 'pixi.js';
+import { Container, Graphics, Sprite, Text, type FederatedPointerEvent } from 'pixi.js';
 import type { GameSession, TavernOffer, TrainingOffer } from '../../application/GameSession';
 import { ALL_SLOTS, type Slot } from '../../domain/army';
 import type { Resources } from '../../domain/economy';
@@ -15,6 +15,17 @@ import { Scene } from './Scene';
 type Tab = 'tavern' | 'train';
 
 const PAD = 16;
+/** Pointer travel (px) before a press on a unit becomes a drag instead of a tap. */
+const DRAG_THRESHOLD = 8;
+
+/** A press on a formation tile; with a unit on it, it turns into a drag once the pointer travels. */
+interface Press {
+  from: Slot;
+  startX: number;
+  startY: number;
+  unit?: { id: string; token: PixelUnit };
+  dragging: boolean;
+}
 
 /** Between battles: see the army, hire at the tavern, train unit types, then fight the next wave. */
 export class CampScene extends Scene {
@@ -31,6 +42,9 @@ export class CampScene extends Scene {
   private readonly credits: Text;
   private tab: Tab = 'tavern';
   private selected: string | null = null;
+  private press: Press | null = null;
+  private gridGeometry = { left: 0, top: 0, cell: 0 };
+  private readonly tiles = new Map<string, Graphics>();
   private screenW = 0;
 
   constructor(
@@ -46,7 +60,7 @@ export class CampScene extends Scene {
     const bold = { fontFamily: FONT, fontWeight: 'bold' as const };
     this.powerText = new Text({ text: '', style: { ...bold, fontSize: 22, fill: COLORS.text } });
     this.powerText.anchor.set(0.5, 0);
-    this.gridHint = new Text({ text: 'Tap two slots to swap', style: { fontFamily: FONT, fontSize: 12, fill: COLORS.muted } });
+    this.gridHint = new Text({ text: 'Drag a unit to move it', style: { fontFamily: FONT, fontSize: 12, fill: COLORS.muted } });
     this.gridHint.anchor.set(0.5, 0);
     this.tavernTab = new Button({ label: 'Tavern', width: 150, height: 44, fontSize: 16, onTap: () => this.setTab('tavern') });
     this.trainTab = new Button({ label: 'Train', width: 150, height: 44, fontSize: 16, onTap: () => this.setTab('train') });
@@ -68,6 +82,8 @@ export class CampScene extends Scene {
       style: { fontFamily: FONT, fontSize: 10, fill: COLORS.muted },
     });
     this.credits.anchor.set(0.5, 1);
+    this.grid.eventMode = 'static';
+    this.grid.on('globalpointermove', (e) => this.onDragMove(e));
     this.addChild(this.powerText, this.grid, this.gridHint, this.tavernTab, this.trainTab, this.list, this.fightButton, this.galleryButton, this.credits, this.bar);
     this.bar.setCaption(`Next: wave ${session.wave}`);
   }
@@ -134,29 +150,92 @@ export class CampScene extends Scene {
 
   private renderGrid(cx: number, top: number, cell: number): void {
     for (const child of this.grid.removeChildren()) child.destroy({ children: true });
+    this.tiles.clear();
+    this.press = null;
     const left = cx - cell * 1.5;
+    this.gridGeometry = { left, top, cell };
     // Front row on top, facing where the enemy will be; back row at the bottom.
     for (const slot of ALL_SLOTS) {
       const x = left + slot.lane * cell + cell / 2;
       const y = top + slot.row * cell + cell / 2;
       const unit = this.session.army.unitAt(slot);
-      const tile = new Graphics()
-        .roundRect(-cell / 2 + 3, -cell / 2 + 3, cell - 6, cell - 6, 8)
-        .fill(slot.row === 0 ? COLORS.panelLight : COLORS.panel)
-        .stroke({ width: 2, color: unit && unit.id === this.selected ? COLORS.rally : 0x000000, alpha: 0.6 });
+      const tile = new Graphics();
+      this.drawTile(tile, slot, cell, unit !== undefined && unit.id === this.selected);
       tile.position.set(x, y);
       tile.eventMode = 'static';
-      tile.cursor = 'pointer';
-      tile.on('pointertap', () => this.onSlotTap(slot));
+      tile.cursor = unit ? 'grab' : 'pointer';
+      this.tiles.set(slotKey(slot), tile);
       this.grid.addChild(tile);
+      let held: Press['unit'];
       if (unit) {
         const token = this.portrait(unit.typeId, cell);
         token.setSelected(unit.id === this.selected);
         token.position.set(x, y);
         token.eventMode = 'none';
         this.grid.addChild(token);
+        held = { id: unit.id, token };
       }
+      tile.on('pointerdown', (e) => {
+        this.press = { from: slot, startX: e.global.x, startY: e.global.y, unit: held, dragging: false };
+      });
+      // Only the pressed tile handles the release: pointerup if it ends on it, pointerupoutside if not.
+      tile.on('pointerup', (e) => this.onRelease(slot, e));
+      tile.on('pointerupoutside', (e) => this.onRelease(slot, e));
     }
+  }
+
+  private drawTile(tile: Graphics, slot: Slot, cell: number, highlight: boolean): void {
+    tile
+      .clear()
+      .roundRect(-cell / 2 + 3, -cell / 2 + 3, cell - 6, cell - 6, 8)
+      .fill(slot.row === 0 ? COLORS.panelLight : COLORS.panel)
+      .stroke({ width: 2, color: highlight ? COLORS.rally : 0x000000, alpha: highlight ? 1 : 0.6 });
+  }
+
+  /** The formation slot under a global point, if any. */
+  private slotAt(globalX: number, globalY: number): Slot | undefined {
+    const p = this.grid.toLocal({ x: globalX, y: globalY });
+    const { left, top, cell } = this.gridGeometry;
+    const lane = Math.floor((p.x - left) / cell);
+    const row = Math.floor((p.y - top) / cell);
+    return ALL_SLOTS.find((s) => s.lane === lane && s.row === row);
+  }
+
+  private onDragMove(e: FederatedPointerEvent): void {
+    const press = this.press;
+    if (!press?.unit) return;
+    const token = press.unit.token;
+    if (!press.dragging) {
+      if (Math.hypot(e.global.x - press.startX, e.global.y - press.startY) < DRAG_THRESHOLD) return;
+      press.dragging = true;
+      this.selected = null;
+      token.setSelected(false);
+      token.scale.set(1.2);
+      token.alpha = 0.9;
+      this.grid.addChild(token); // on top of every tile
+      this.grid.cursor = 'grabbing';
+    }
+    const p = this.grid.toLocal(e.global);
+    token.position.set(p.x, p.y);
+    const target = this.slotAt(e.global.x, e.global.y);
+    const { cell } = this.gridGeometry;
+    for (const slot of ALL_SLOTS) this.drawTile(this.tiles.get(slotKey(slot))!, slot, cell, target !== undefined && sameSlot(slot, target));
+  }
+
+  private onRelease(tile: Slot, e: FederatedPointerEvent): void {
+    const press = this.press;
+    if (!press || !sameSlot(press.from, tile)) return;
+    this.press = null;
+    if (press.dragging && press.unit) {
+      this.grid.cursor = 'default';
+      const target = this.slotAt(e.global.x, e.global.y);
+      // Dropping on another slot moves the unit there, swapping with whoever stands in it.
+      if (target && !sameSlot(target, press.from)) this.session.moveUnit(press.unit.id, target);
+      this.rerender();
+      return;
+    }
+    // A plain tap keeps the tap-two-slots way of swapping.
+    if (e.type === 'pointerup') this.onSlotTap(tile);
   }
 
   private onSlotTap(slot: Slot): void {
@@ -275,4 +354,12 @@ export class CampScene extends Scene {
     s.position.set(x, y);
     return s;
   }
+}
+
+function slotKey(slot: Slot): string {
+  return `${slot.row}:${slot.lane}`;
+}
+
+function sameSlot(a: Slot, b: Slot): boolean {
+  return a.row === b.row && a.lane === b.lane;
 }
