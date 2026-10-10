@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Lane, Role, Row, UnitStats } from '../shared';
-import { Battle, MAX_TAPS_PER_SECOND, RALLY_MAX, TIME_LIMIT_TICKS, type CombatantSpec, type CombatEvent, type Side } from '.';
+import { Battle, MAX_TAPS_PER_SECOND, POTION_COOLDOWN_TICKS, POTION_USES_PER_BATTLE, RALLY_MAX, TIME_LIMIT_TICKS, type CombatantSpec, type CombatEvent, type Side } from '.';
 
 const base: UnitStats = { hp: 100, atk: 10, spd: 1, arm: 0, ranged: false };
 
@@ -160,6 +160,56 @@ describe('Battle', () => {
     battle.runToEnd();
     battle.tap();
     expect(battle.step()).toEqual([]);
+  });
+
+  it('a health potion heals every living ally by a share of max HP, never past full', () => {
+    const battle = new Battle(
+      [
+        { ...unit('hurt', 'player', 0, 1), hp: 20 },
+        { ...unit('scratched', 'player', 0, 0), hp: 95 },
+        unit('e', 'enemy', 2, 1, 'fighter', { atk: 0 }),
+      ],
+      1,
+    );
+    expect(battle.usePotion('health', { kind: 'heal', pct: 30 })).toBe(true);
+    const events = battle.step();
+    expect(events).toContainEqual({ type: 'potionUsed', tick: 1, potionId: 'health', effect: 'heal' });
+    expect(events).toContainEqual({ type: 'healed', tick: 1, targetId: 'hurt', amount: 30 });
+    expect(events).toContainEqual({ type: 'healed', tick: 1, targetId: 'scratched', amount: 5 });
+    expect(battle.get('hurt')!.hp).toBe(50);
+    expect(battle.get('scratched')!.hp).toBe(100);
+  });
+
+  it('a damage potion hits every living enemy for a flat amount, ignoring armour', () => {
+    const battle = new Battle(
+      [unit('p', 'player', 0, 1, 'fighter', { atk: 0 }), unit('crab', 'enemy', 0, 1, 'guard', { arm: 40 }), unit('weak', 'enemy', 2, 0, 'shooter', { hp: 10 })],
+      1,
+    );
+    battle.usePotion('damage', { kind: 'blast', damage: 25 });
+    const events = battle.step();
+    expect(events).toContainEqual({ type: 'potionHit', tick: 1, targetId: 'crab', damage: 25, killed: false });
+    expect(events).toContainEqual({ type: 'potionHit', tick: 1, targetId: 'weak', damage: 25, killed: true });
+    expect(battle.get('crab')!.hp).toBe(75);
+    expect(events.some((e) => e.type === 'potionHit' && e.targetId === 'p')).toBe(false);
+  });
+
+  it('puts each potion on a cooldown and caps uses per battle', () => {
+    const battle = new Battle([unit('p', 'player', 0, 1, 'fighter', { hp: 100_000, atk: 0 }), unit('e', 'enemy', 0, 1, 'fighter', { hp: 100_000, atk: 0 })], 1);
+    const heal = { kind: 'heal', pct: 10 } as const;
+    expect(battle.usePotion('health', heal)).toBe(true);
+    expect(battle.usePotion('health', heal)).toBe(false); // already on its way
+    expect(battle.canUsePotion('damage')).toBe(true); // kinds cool down separately
+    battle.step();
+    expect(battle.potionCooldown('health')).toBe(POTION_COOLDOWN_TICKS);
+    expect(battle.usePotion('health', heal)).toBe(false);
+    for (let used = 1; used < POTION_USES_PER_BATTLE; used++) {
+      while (!battle.canUsePotion('health')) battle.step();
+      expect(battle.usePotion('health', heal)).toBe(true);
+      battle.step();
+    }
+    while (battle.potionCooldown('health') > 0) battle.step();
+    expect(battle.potionsUsed('health')).toBe(POTION_USES_PER_BATTLE);
+    expect(battle.canUsePotion('health')).toBe(false);
   });
 });
 

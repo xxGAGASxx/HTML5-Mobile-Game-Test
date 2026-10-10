@@ -22,6 +22,21 @@ export interface GameContent {
   /** Price to train each player unit type from level 1 to 2. */
   readonly trainBase: Readonly<Record<string, Resources>>;
   readonly region: RegionSpec;
+  /** Potions sold at camp and used in battle. */
+  readonly potions: readonly PotionDef[];
+  /** Most of each potion the player can carry. */
+  readonly potionStack: number;
+  /** Potions in the satchel at the start, by id. */
+  readonly startingPotions: Readonly<Record<string, number>>;
+}
+
+/** A potion for sale. A blast's damage grows with the fight's tier so it stays useful deeper in. */
+export interface PotionDef {
+  readonly id: string;
+  readonly name: string;
+  readonly icon: string;
+  readonly price: Resources;
+  readonly effect: { readonly kind: 'heal'; readonly pct: number } | { readonly kind: 'blast'; readonly base: number; readonly perTier: number };
 }
 
 /** One fight: enemies in their slots (row 0 is their front line), scaled by `strength`. */

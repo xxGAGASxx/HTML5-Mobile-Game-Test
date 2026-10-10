@@ -29,7 +29,13 @@ export type CombatEvent =
   | { type: 'attack'; tick: number; attackerId: string; targetId: string; damage: number; killed: boolean; rally: boolean }
   | { type: 'captainHit'; tick: number; targetId: string; damage: number; killed: boolean }
   | { type: 'rallyFired'; tick: number; efficiency: number }
+  | { type: 'potionUsed'; tick: number; potionId: string; effect: PotionEffect['kind'] }
+  | { type: 'healed'; tick: number; targetId: string; amount: number }
+  | { type: 'potionHit'; tick: number; targetId: string; damage: number; killed: boolean }
   | { type: 'ended'; tick: number; winner: Side; reason: BattleEndReason };
+
+/** What a potion does when it lands: heal every living ally by a share of max HP, or hit every enemy. */
+export type PotionEffect = { readonly kind: 'heal'; readonly pct: number } | { readonly kind: 'blast'; readonly damage: number };
 
 export interface BattleOutcome {
   readonly winner: Side;
@@ -54,6 +60,10 @@ export const MAX_TAPS_PER_SECOND = 5;
 export const RALLY_AUTO_DELAY_TICKS = 3 * TICK_HZ;
 export const RALLY_SKILL_PCT = 200;
 export const CAPTAIN_TAP_ATK = 3;
+/** After a potion lands, the same kind can't be used again for this long. */
+export const POTION_COOLDOWN_TICKS = 5 * TICK_HZ;
+/** Each kind of potion can be used at most this often per battle (GDD 05), so they help but never carry a fight. */
+export const POTION_USES_PER_BATTLE = 2;
 
 const STRONG_VS: Record<Role, Role> = {
   guard: 'fighter',
@@ -77,6 +87,9 @@ export class Battle {
   private pendingRally = false;
   private readonly acceptedTapTicks: number[] = [];
   private readonly defeatedEnemies: string[] = [];
+  private readonly pendingPotions = new Map<string, PotionEffect>();
+  private readonly potionReadyAt = new Map<string, number>();
+  private readonly potionUses = new Map<string, number>();
   private result: BattleOutcome | null = null;
 
   constructor(specs: readonly CombatantSpec[], seed: number) {
@@ -128,6 +141,32 @@ export class Battle {
     if (!this.isOver && this.rallyReady) this.pendingRally = true;
   }
 
+  /** Whether potion `id` can be used now: battle running, off cooldown, and under the per-battle cap. */
+  canUsePotion(id: string): boolean {
+    return (
+      !this.isOver &&
+      !this.pendingPotions.has(id) &&
+      this.potionsUsed(id) < POTION_USES_PER_BATTLE &&
+      this.potionCooldown(id) === 0
+    );
+  }
+
+  /** Ticks until potion `id` is off cooldown. */
+  potionCooldown(id: string): number {
+    return Math.max(0, (this.potionReadyAt.get(id) ?? 0) - this.tickCount);
+  }
+
+  potionsUsed(id: string): number {
+    return (this.potionUses.get(id) ?? 0) + (this.pendingPotions.has(id) ? 1 : 0);
+  }
+
+  /** Player used a potion; it lands on the next tick. Returns false when it can't be used now. */
+  usePotion(id: string, effect: PotionEffect): boolean {
+    if (!this.canUsePotion(id)) return false;
+    this.pendingPotions.set(id, effect);
+    return true;
+  }
+
   /** Advances one simulation tick and returns what happened during it. */
   step(): CombatEvent[] {
     if (this.result) return [];
@@ -135,6 +174,7 @@ export class Battle {
     const tick = ++this.tickCount;
 
     this.applyTaps(tick, events);
+    this.applyPotions(tick, events);
     if (tick % RALLY_PASSIVE_TICKS === 0) this.chargeRally(1, tick);
     if (this.pendingRally && this.rallyReady) {
       this.doRally(tick, 1, events);
@@ -176,6 +216,29 @@ export class Battle {
       const killed = this.hurt(target, damage);
       events.push({ type: 'captainHit', tick, targetId: target.spec.id, damage, killed });
     }
+  }
+
+  private applyPotions(tick: number, events: CombatEvent[]): void {
+    for (const [id, effect] of this.pendingPotions) {
+      this.potionUses.set(id, (this.potionUses.get(id) ?? 0) + 1);
+      this.potionReadyAt.set(id, tick + POTION_COOLDOWN_TICKS);
+      events.push({ type: 'potionUsed', tick, potionId: id, effect: effect.kind });
+      for (const c of this.combatants) {
+        if (c.hp <= 0) continue; // the fallen stay down
+        if (effect.kind === 'heal' && c.spec.side === 'player') {
+          const amount = Math.min(c.maxHp - c.hp, Math.max(1, Math.round((c.maxHp * effect.pct) / 100)));
+          if (amount <= 0) continue;
+          c.hp += amount;
+          events.push({ type: 'healed', tick, targetId: c.spec.id, amount });
+        } else if (effect.kind === 'blast' && c.spec.side === 'enemy') {
+          // Alchemist's fire ignores armour: the button can promise an exact number.
+          const damage = Math.max(1, effect.damage);
+          const killed = this.hurt(c, damage);
+          events.push({ type: 'potionHit', tick, targetId: c.spec.id, damage, killed });
+        }
+      }
+    }
+    this.pendingPotions.clear();
   }
 
   private chargeRally(amount: number, tick: number): void {

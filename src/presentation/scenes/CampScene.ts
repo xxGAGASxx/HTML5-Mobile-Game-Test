@@ -1,5 +1,5 @@
 import { Container, Graphics, Sprite, Text, type FederatedPointerEvent } from 'pixi.js';
-import type { GameSession, TavernOffer, TrainingOffer } from '../../application/GameSession';
+import type { GameSession, PotionOffer, TavernOffer, TrainingOffer } from '../../application/GameSession';
 import { ALL_SLOTS, type Slot } from '../../domain/army';
 import type { Resources } from '../../domain/economy';
 import { icon, type Icons } from '../assets/icons';
@@ -12,9 +12,10 @@ import { ResourceBar } from '../ui/ResourceBar';
 import { PixelUnit } from '../ui/PixelUnit';
 import { Scene } from './Scene';
 
-type Tab = 'tavern' | 'train';
+type Tab = 'tavern' | 'train' | 'potions';
 
 const PAD = 16;
+const TAB_GAP = 8;
 /** Pointer travel (px) before a press on a unit becomes a drag instead of a tap. */
 const DRAG_THRESHOLD = 8;
 
@@ -36,6 +37,7 @@ export class CampScene extends Scene {
   private readonly gridHint: Text;
   private readonly tavernTab: Button;
   private readonly trainTab: Button;
+  private readonly potionsTab: Button;
   private readonly list = new Container();
   private readonly mapButton: Button;
   private readonly galleryButton: Button;
@@ -64,6 +66,7 @@ export class CampScene extends Scene {
     this.gridHint.anchor.set(0.5, 0);
     this.tavernTab = new Button({ label: 'Tavern', width: 150, height: 44, fontSize: 16, onTap: () => this.setTab('tavern') });
     this.trainTab = new Button({ label: 'Train', width: 150, height: 44, fontSize: 16, onTap: () => this.setTab('train') });
+    this.potionsTab = new Button({ label: 'Potions', width: 150, height: 44, fontSize: 16, onTap: () => this.setTab('potions') });
     this.mapButton = new Button({
       label: 'To map',
       width: 300,
@@ -84,7 +87,7 @@ export class CampScene extends Scene {
     this.credits.anchor.set(0.5, 1);
     this.grid.eventMode = 'static';
     this.grid.on('globalpointermove', (e) => this.onDragMove(e));
-    this.addChild(this.powerText, this.grid, this.gridHint, this.tavernTab, this.trainTab, this.list, this.mapButton, this.galleryButton, this.credits, this.bar);
+    this.addChild(this.powerText, this.grid, this.gridHint, this.tavernTab, this.trainTab, this.potionsTab, this.list, this.mapButton, this.galleryButton, this.credits, this.bar);
     this.bar.setCaption('Wreck Camp');
   }
 
@@ -95,9 +98,8 @@ export class CampScene extends Scene {
     this.mapButton.position.set(PAD + this.mapButton.buttonWidth / 2, height - 24 - this.mapButton.buttonHeight / 2);
     this.galleryButton.position.set(width - PAD - this.galleryButton.buttonWidth / 2, this.mapButton.y);
     this.credits.position.set(width / 2, height - 4);
-    const tabW = (width - PAD * 3) / 2;
-    this.tavernTab.resize(tabW);
-    this.trainTab.resize(tabW);
+    const tabW = (width - PAD * 2 - TAB_GAP * 2) / 3;
+    for (const tab of [this.tavernTab, this.trainTab, this.potionsTab]) tab.resize(tabW);
     this.render();
   }
 
@@ -128,7 +130,7 @@ export class CampScene extends Scene {
 
     // Size the formation grid and list rows to fit the screen height.
     const buttonTop = this.mapButton.y - this.mapButton.buttonHeight / 2 - 10;
-    const rows = this.tab === 'tavern' ? this.session.tavernOffers().length : this.session.trainingOffers().length;
+    const rows = { tavern: this.session.tavernOffers(), train: this.session.trainingOffers(), potions: this.session.potionOffers() }[this.tab].length;
     const free = buttonTop - (top + 34) - 18 - 56;
     const rowH = Math.max(52, Math.min(64, (free * 0.55) / Math.max(rows, 4)));
     const cell = Math.max(40, Math.min(68, (free - rowH * Math.max(rows, 4)) / 3));
@@ -138,10 +140,15 @@ export class CampScene extends Scene {
     this.gridHint.position.set(width / 2, gridTop + cell * 3 + 2);
 
     const tabsY = gridTop + cell * 3 + 18 + 28;
-    this.tavernTab.position.set(PAD + this.tavernTab.buttonWidth / 2, tabsY);
-    this.trainTab.position.set(width - PAD - this.trainTab.buttonWidth / 2, tabsY);
-    this.tavernTab.alpha = this.tab === 'tavern' ? 1 : 0.7;
-    this.trainTab.alpha = this.tab === 'train' ? 1 : 0.7;
+    const tabs: [Button, Tab][] = [
+      [this.tavernTab, 'tavern'],
+      [this.trainTab, 'train'],
+      [this.potionsTab, 'potions'],
+    ];
+    tabs.forEach(([button, tab], i) => {
+      button.position.set(PAD + button.buttonWidth / 2 + i * (button.buttonWidth + TAB_GAP), tabsY);
+      button.alpha = this.tab === tab ? 1 : 0.7;
+    });
 
     this.list.position.set(PAD, tabsY + 30);
     this.renderList(width - PAD * 2, rowH);
@@ -261,7 +268,9 @@ export class CampScene extends Scene {
     const rows: Container[] =
       this.tab === 'tavern'
         ? this.session.tavernOffers().map((o) => this.tavernRow(o, width, rowH))
-        : this.session.trainingOffers().map((o) => this.trainRow(o, width, rowH));
+        : this.tab === 'train'
+          ? this.session.trainingOffers().map((o) => this.trainRow(o, width, rowH))
+          : this.session.potionOffers().map((o) => this.potionRow(o, width, rowH));
     rows.forEach((row, i) => {
       row.y = i * rowH;
       this.list.addChild(row);
@@ -270,6 +279,14 @@ export class CampScene extends Scene {
       const note = new Text({
         text: `Army full (${this.session.army.capacity}/${this.session.army.capacity}). Train units instead.`,
         style: { fontFamily: FONT, fontSize: 12, fill: COLORS.muted },
+      });
+      note.y = rows.length * rowH + 4;
+      this.list.addChild(note);
+    }
+    if (this.tab === 'potions') {
+      const note = new Text({
+        text: 'Tap a potion in battle. Each kind: 2 uses per fight.',
+        style: { fontFamily: FONT, fontSize: 12, fill: COLORS.muted, wordWrap: true, wordWrapWidth: width },
       });
       note.y = rows.length * rowH + 4;
       this.list.addChild(note);
@@ -293,8 +310,26 @@ export class CampScene extends Scene {
     });
   }
 
+  private potionRow(offer: PotionOffer, width: number, rowH: number): Container {
+    const e = offer.potion.effect;
+    const what = e.kind === 'heal' ? `Heal all ${e.pct}%` : 'Hit all foes';
+    const subtitle = `${what} · Have ${offer.owned}/${offer.stackLimit}`;
+    const avatar = (box: number): Container => {
+      const s = new Sprite(icon(this.icons, offer.potion.icon));
+      s.anchor.set(0.5);
+      s.tint = e.kind === 'heal' ? COLORS.good : COLORS.danger;
+      s.width = s.height = Math.min(40, box * 0.7);
+      return s;
+    };
+    const blocked = offer.blockedBy === 'full';
+    return this.row(avatar, offer.potion.name, subtitle, offer.potion.price, blocked ? 'Full' : 'Buy', offer.canBuy, width, rowH, () => {
+      this.session.buyPotion(offer.potion.id);
+      this.rerender();
+    });
+  }
+
   private row(
-    typeId: string,
+    avatar: string | ((box: number) => Container),
     name: string,
     subtitle: string,
     price: Resources | null,
@@ -307,7 +342,7 @@ export class CampScene extends Scene {
     const row = new Container();
     const h = rowH - 6;
     row.addChild(new Graphics().roundRect(0, 0, width, h, 10).fill(COLORS.panel));
-    const token = this.portrait(typeId, h);
+    const token = typeof avatar === 'string' ? this.portrait(avatar, h) : avatar(h);
     token.position.set(h / 2 + 2, h / 2);
     const title = new Text({ text: name, style: { fontFamily: FONT, fontSize: 15, fontWeight: 'bold', fill: COLORS.text } });
     title.position.set(h + 6, h / 2 - 18);
@@ -319,6 +354,7 @@ export class CampScene extends Scene {
     // Long names shrink to fit beside the price column.
     const titleRoom = width - buttonW - 70 - title.x;
     if (title.width > titleRoom) title.scale.set(titleRoom / title.width);
+    if (sub.width > titleRoom) sub.scale.set(titleRoom / sub.width);
     const button = new Button({ label: action, width: buttonW, height: Math.min(44, h - 4), fontSize: 15, color: COLORS.good, onTap });
     button.enabled = enabled;
     button.position.set(width - buttonW / 2 - 4, h / 2);

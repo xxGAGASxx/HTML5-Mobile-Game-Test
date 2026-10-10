@@ -204,6 +204,37 @@ describe('GameSession', () => {
     expect(session.partyAt).toBe('bandit-lookout');
   });
 
+  it('sells potions up to the stack limit', () => {
+    const session = new GameSession(rich());
+    const health = () => session.potionOffers().find((o) => o.potion.id === 'health')!;
+    expect(health().owned).toBe(CONTENT.startingPotions.health);
+    while (health().canBuy) session.buyPotion('health');
+    expect(health()).toMatchObject({ owned: CONTENT.potionStack, blockedBy: 'full' });
+    expect(() => session.buyPotion('health')).toThrow();
+    const price = health().potion.price;
+    const bought = CONTENT.potionStack - (CONTENT.startingPotions.health ?? 0);
+    expect(session.wallet.balance.gold).toBe(10_000 - price.gold * bought);
+
+    const poor = new GameSession({ ...CONTENT, startingResources: { gold: 0, food: 0 } });
+    expect(poor.potionOffers().every((o) => o.blockedBy === 'cost')).toBe(true);
+  });
+
+  it('uses potions in battle from the satchel; blasts grow with the tier', () => {
+    const session = new GameSession(CONTENT);
+    const events: GameEvent[] = [];
+    session.events.subscribe('PotionUsed', (e) => events.push(e));
+    expect(() => session.usePotion('health')).toThrow(); // no battle
+    const { battle } = fightAt(session, 'driftwood-beach');
+    const damage = session.battlePotions().find((p) => p.potion.id === 'damage')!;
+    expect(damage).toMatchObject({ owned: 1, canUse: true, cooldown: 0, effect: { kind: 'blast', damage: 15 + 6 * session.node('driftwood-beach').tier } });
+    expect(session.usePotion('damage')).toBe(true);
+    expect(session.satchel.count('damage')).toBe(0);
+    expect(session.usePotion('damage')).toBe(false); // none left
+    expect(events).toEqual([{ type: 'PotionUsed', potionId: 'damage', nodeId: 'driftwood-beach' }]);
+    battle.step();
+    expect(session.battlePotions().find((p) => p.potion.id === 'damage')).toMatchObject({ canUse: false, usesLeft: 1 });
+  });
+
   it('reads Power synchronously at battle start', () => {
     const session = new GameSession(rich());
     session.hire('driftwood-wardens');
