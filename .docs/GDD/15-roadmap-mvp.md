@@ -39,10 +39,10 @@ interfaces and no-op placeholders are built; see [16-deferred-integrations.md](1
 | # | Question | Answer |
 |---|---|---|
 | 1 | Distribution channel | **Web + Mobile**: PWA and a Capacitor-wrapped app from one codebase (13) |
-| 2 | Art style | **Leaning pixel art.** References in `.docs/Art-Style/`; confirm with the style test (12) |
+| 2 | Art style | **Pixel art (B)**, picked after the style test on 2026-10-10. Specs in (12) |
 | 3 | Backend | **Later.** Placeholder interfaces only (16) |
 | 4 | Title and IP | **Non-commercial.** Working title *Wreckbound*, no reuse of the reference's name or IP (01) |
 
 ## Open questions
 
-1. Art style: pick after the style test in [12-art-audio.md](12-art-audio.md).
+None right now.
