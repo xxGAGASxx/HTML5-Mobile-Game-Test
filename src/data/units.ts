@@ -60,6 +60,13 @@ export const ENEMY_UNITS: readonly UnitType[] = [
     role: 'shooter',
     stats: { hp: 70, atk: 12, spd: 0.7, arm: 0, ranged: true },
   },
+  // Wreck Coast boss.
+  {
+    id: 'bandit-chief',
+    name: 'Bandit Chief',
+    role: 'fighter',
+    stats: { hp: 420, atk: 16, spd: 0.9, arm: 25, ranged: false },
+  },
 ];
 
 /** The army the player starts with, best slot picked automatically. */

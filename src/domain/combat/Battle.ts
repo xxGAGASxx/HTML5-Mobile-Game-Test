@@ -11,6 +11,8 @@ export interface CombatantSpec {
   readonly row: Row;
   readonly lane: Lane;
   readonly stats: UnitStats;
+  /** HP at the start of the battle when below full (ruins carry damage between floors). */
+  readonly hp?: number;
 }
 
 export interface Combatant {
@@ -86,7 +88,8 @@ export class Battle {
     this.combatants = ordered.map((spec) => {
       const interval = attackInterval(spec.stats);
       // Stagger first swings so a whole side does not hit on the same tick.
-      return { spec, maxHp: spec.stats.hp, hp: spec.stats.hp, cooldown: 1 + this.rng.int(interval) };
+      const hp = Math.min(spec.stats.hp, Math.max(1, spec.hp ?? spec.stats.hp));
+      return { spec, maxHp: spec.stats.hp, hp, cooldown: 1 + this.rng.int(interval) };
     });
     for (const c of this.combatants) this.byId.set(c.spec.id, c);
   }

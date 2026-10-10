@@ -12,6 +12,15 @@ import { ResourceBar } from '../ui/ResourceBar';
 import type { PixelUnit } from '../ui/PixelUnit';
 import { Scene } from './Scene';
 
+export interface BattleActions {
+  /** Back to the map once the result is seen. */
+  onDone: (report: BattleReport) => void;
+  /** Ruins: fight the next floor right away. */
+  onNextFloor: () => void;
+  /** Ruins: leave between floors, keeping what was found. */
+  onRetreat: () => void;
+}
+
 const BOTTOM_PANEL = 128;
 /** Never simulate more than this many ticks in one frame (after a tab switch, for example). */
 const MAX_TICKS_PER_FRAME = 8;
@@ -35,6 +44,7 @@ export class BattleScene extends Scene {
   private readonly dead = new Set<string>();
   private readonly hint: Text;
   private readonly clock: Text;
+  private readonly title: Text;
   private readonly panel = new Graphics();
   private readonly meter = new Graphics();
   private readonly meterLabel: Text;
@@ -51,16 +61,22 @@ export class BattleScene extends Scene {
 
   constructor(
     private readonly session: GameSession,
+    nodeId: string,
     private readonly icons: Icons,
     pixel: PixelAssets,
-    private readonly onContinue: () => void,
+    private readonly actions: BattleActions,
   ) {
     super();
     this.art = new PixelArt(pixel);
-    this.prepared = session.beginBattle();
+    this.prepared = session.beginBattle(nodeId);
+    const node = session.battleNode!;
+    const floor = session.ruinFloor;
     this.bar = new ResourceBar(icons, this.tweens);
     this.bar.set(session.wallet.balance);
-    this.bar.setCaption(`Wave ${session.wave} · ${this.prepared.power} vs ${this.prepared.threat}`);
+    this.bar.setCaption(`${this.prepared.power} vs ${this.prepared.threat}`);
+    const name = floor ? `${node.name} · Floor ${floor.index + 1}/${floor.count}` : node.name;
+    this.title = new Text({ text: name, style: { fontFamily: FONT, fontWeight: 'bold', fontSize: 14, fill: COLORS.text, stroke: { color: 0x000000, width: 3 } } });
+    this.title.anchor.set(0, 0.5);
 
     this.field.eventMode = 'static';
     this.field.on('pointerdown', (e) => this.onFieldTap(e));
@@ -81,7 +97,7 @@ export class BattleScene extends Scene {
     this.hint.anchor.set(0.5);
     this.clock = new Text({ text: '', style: { ...label, fontSize: 14, fill: COLORS.muted } });
     this.clock.anchor.set(1, 0.5);
-    this.field.addChild(this.hint, this.clock, this.fx);
+    this.field.addChild(this.hint, this.clock, this.title, this.fx);
     this.tweens.play(this.hint, { alpha: [1, 0.35], duration: 700, loop: true, alternate: true, ease: 'inOutSine' });
 
     this.meterLabel = new Text({ text: '', style: { ...label, fontSize: 13, fill: COLORS.text } });
@@ -133,6 +149,7 @@ export class BattleScene extends Scene {
     this.drawField(width, fieldH, mid);
     this.hint.position.set(width / 2, mid);
     this.clock.position.set(width - 12, mid - 14);
+    this.title.position.set(12, mid - 14);
 
     const py = height - BOTTOM_PANEL;
     this.panel.clear().rect(0, py, width, BOTTOM_PANEL).fill(COLORS.panel);
@@ -335,22 +352,40 @@ export class BattleScene extends Scene {
     const report = this.report;
     if (!report || this.overlay.children.length) return;
     const won = report.outcome.winner === 'player';
-    const title = won ? 'Victory!' : report.outcome.reason === 'timeout' ? "Time's up" : 'Defeated';
+    const title = won ? (report.regionCleared ? 'Region cleared!' : 'Victory!') : report.outcome.reason === 'timeout' ? "Time's up" : 'Defeated';
     const dim = new Graphics();
     dim.eventMode = 'static'; // swallow taps meant for the field
     const panel = new Graphics();
     const style = { fontFamily: FONT, fontWeight: 'bold' as const };
-    const heading = new Text({ text: title, style: { ...style, fontSize: 36, fill: won ? COLORS.good : COLORS.danger } });
-    const subtitle = new Text({
-      text: won ? `Wave ${report.wave} cleared` : `Wave ${report.wave}: partial loot`,
-      style: { ...style, fontSize: 16, fill: COLORS.muted },
-    });
+    const heading = new Text({ text: title, style: { ...style, fontSize: 34, fill: won ? COLORS.good : COLORS.danger } });
+    const node = this.session.node(report.nodeId);
+    const floor = report.floor;
+    let line: string;
+    if (!won) line = floor ? `Floor ${floor.index + 1} lost: the run is over` : 'Partial loot. Try again!';
+    else if (report.nextFloor && floor) line = `Floor ${floor.index + 1} of ${floor.count} cleared. No healing below!`;
+    else if (report.regionCleared) line = 'The Bandit Chief has fallen.';
+    else if (report.treasure) line = 'Treasure at the bottom of the ruin!';
+    else if (report.revealed.length) line = `${node.name} cleared. New paths open!`;
+    else line = `${node.name} cleared`;
+    const subtitle = new Text({ text: line, style: { ...style, fontSize: 14, fill: COLORS.muted, wordWrap: true, wordWrapWidth: Math.min(this.screenW - 64, 320), align: 'center' } });
     const loot = new Text({
       text: `+${report.loot.gold} gold   +${report.loot.food} food`,
       style: { ...style, fontSize: 20, fill: COLORS.gold },
     });
     for (const t of [heading, subtitle, loot]) t.anchor.set(0.5);
-    const button = new Button({ label: 'To camp', width: 220, icon: icon(this.icons, 'camping-tent'), onTap: this.onContinue });
+    const buttons = new Container();
+    const done = (): void => this.actions.onDone(report);
+    if (report.nextFloor) {
+      buttons.addChild(
+        new Button({ label: 'Retreat', width: 140, icon: icon(this.icons, 'run'), color: COLORS.muted, onTap: this.actions.onRetreat }),
+        new Button({ label: 'Next floor', width: 160, icon: icon(this.icons, 'ancient-ruins'), onTap: this.actions.onNextFloor }),
+      );
+      buttons.children[0]!.x = -82;
+      buttons.children[1]!.x = 72;
+    } else {
+      buttons.addChild(new Button({ label: 'To map', width: 220, icon: icon(this.icons, 'treasure-map'), onTap: done }));
+    }
+    const button = buttons;
     dim.label = 'dim';
     panel.label = 'panel';
     this.overlay.addChild(dim, panel, heading, subtitle, loot, button);
@@ -362,7 +397,7 @@ export class BattleScene extends Scene {
 
   private layoutOverlay(): void {
     if (!this.overlay.children.length) return;
-    const [dim, panel, heading, subtitle, loot, button] = this.overlay.children as [Graphics, Graphics, Text, Text, Text, Button];
+    const [dim, panel, heading, subtitle, loot, button] = this.overlay.children as [Graphics, Graphics, Text, Text, Text, Container];
     const w = Math.min(this.screenW - 32, 360);
     const h = 250;
     const cx = this.screenW / 2;

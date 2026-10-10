@@ -11,12 +11,16 @@ Self-made pixel art for every unit, effect and battlefield tile (style decided i
 | `creatures.ts` | Shore crab and coast wolf |
 | `units.ts` | One recipe per unit (ids match `src/data/units.ts`) and its poses: idle 4f, attack 6f, hit 2f, death 6f |
 | `fx.ts` | Slash, hit spark, magic burst, projectiles, death dust, shadow, beach props and ground tiles |
+| `island.ts` | Isometric island maps: terrain from hand-placed shapes, cliffs, roads between nodes, bridges, trees, one landmark per node kind |
+| `mapSprites.ts` | Fog clouds, fire flicker and water glints the map scene animates over the island |
 
 Output (committed, served by Vite from `public/`):
 
 - `public/assets/sprites/pixel.png` + `pixel.json`: one PixiJS atlas with every frame and animation
   (`<unit id>/<idle|attack|hit|death>`, `fx/*`, `deco/*`, `shadow`).
 - `public/assets/sprites/ground-*.png`: seamless tiles for `TilingSprite`.
+- `public/assets/maps/<region>.png` + `.json`: the baked island, and where each node marker, fire and
+  water glint sits on it. Node positions and links come from `src/data/regions/`.
 
 Units are drawn in a 48 x 48 cell with the feet on row 44, and shown at an integer zoom with
 nearest-neighbour sampling. To add a unit: add a recipe in `units.ts` keyed by its `UnitType` id,

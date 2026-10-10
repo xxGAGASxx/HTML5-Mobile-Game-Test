@@ -7,7 +7,7 @@ import { COLORS, FONT } from '../theme';
 
 const HEIGHT = 52;
 
-/** Top bar: Gold | Food, plus a right-aligned caption (wave, power). */
+/** Top bar: Gold | Food, plus a right-aligned caption (place, power). */
 export class ResourceBar extends Container {
   readonly goldIcon: Sprite;
   readonly foodIcon: Sprite;

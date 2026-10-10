@@ -27,7 +27,7 @@ interface Press {
   dragging: boolean;
 }
 
-/** Between battles: see the army, hire at the tavern, train unit types, then fight the next wave. */
+/** Between battles: see the army, hire at the tavern, train unit types, then head back out to the map. */
 export class CampScene extends Scene {
   private readonly tweens = new Tweens();
   private readonly bar: ResourceBar;
@@ -37,7 +37,7 @@ export class CampScene extends Scene {
   private readonly tavernTab: Button;
   private readonly trainTab: Button;
   private readonly list = new Container();
-  private readonly fightButton: Button;
+  private readonly mapButton: Button;
   private readonly galleryButton: Button;
   private readonly credits: Text;
   private tab: Tab = 'tavern';
@@ -51,7 +51,7 @@ export class CampScene extends Scene {
     private readonly session: GameSession,
     private readonly icons: Icons,
     private readonly pixel: PixelAssets,
-    onFight: () => void,
+    onMap: () => void,
     onGallery: () => void,
   ) {
     super();
@@ -64,36 +64,36 @@ export class CampScene extends Scene {
     this.gridHint.anchor.set(0.5, 0);
     this.tavernTab = new Button({ label: 'Tavern', width: 150, height: 44, fontSize: 16, onTap: () => this.setTab('tavern') });
     this.trainTab = new Button({ label: 'Train', width: 150, height: 44, fontSize: 16, onTap: () => this.setTab('train') });
-    this.fightButton = new Button({
-      label: `Fight wave ${session.wave}`,
+    this.mapButton = new Button({
+      label: 'To map',
       width: 300,
       height: 60,
       fontSize: 20,
-      icon: icon(icons, 'crossed-swords'),
+      icon: icon(icons, 'treasure-map'),
       onTap: () => {
-        this.fightButton.enabled = false; // one battle per tap, even on a double tap
-        onFight();
+        this.mapButton.enabled = false; // one scene change per tap, even on a double tap
+        onMap();
       },
     });
     // Unit gallery: every unit looping its animations.
     this.galleryButton = new Button({ label: 'Units', width: 80, height: 60, fontSize: 16, color: COLORS.text, onTap: onGallery });
     this.credits = new Text({
-      text: 'Icons by Lorc & Delapouite · game-icons.net · CC BY 3.0',
+      text: 'Icons by Lorc, Delapouite & Skoll · game-icons.net · CC BY 3.0',
       style: { fontFamily: FONT, fontSize: 10, fill: COLORS.muted },
     });
     this.credits.anchor.set(0.5, 1);
     this.grid.eventMode = 'static';
     this.grid.on('globalpointermove', (e) => this.onDragMove(e));
-    this.addChild(this.powerText, this.grid, this.gridHint, this.tavernTab, this.trainTab, this.list, this.fightButton, this.galleryButton, this.credits, this.bar);
-    this.bar.setCaption(`Next: wave ${session.wave}`);
+    this.addChild(this.powerText, this.grid, this.gridHint, this.tavernTab, this.trainTab, this.list, this.mapButton, this.galleryButton, this.credits, this.bar);
+    this.bar.setCaption('Wreck Camp');
   }
 
   layout(width: number, height: number): void {
     this.screenW = width;
     this.bar.layout(width);
-    this.fightButton.resize(width - PAD * 3 - this.galleryButton.buttonWidth);
-    this.fightButton.position.set(PAD + this.fightButton.buttonWidth / 2, height - 24 - this.fightButton.buttonHeight / 2);
-    this.galleryButton.position.set(width - PAD - this.galleryButton.buttonWidth / 2, this.fightButton.y);
+    this.mapButton.resize(width - PAD * 3 - this.galleryButton.buttonWidth);
+    this.mapButton.position.set(PAD + this.mapButton.buttonWidth / 2, height - 24 - this.mapButton.buttonHeight / 2);
+    this.galleryButton.position.set(width - PAD - this.galleryButton.buttonWidth / 2, this.mapButton.y);
     this.credits.position.set(width / 2, height - 4);
     const tabW = (width - PAD * 3) / 2;
     this.tavernTab.resize(tabW);
@@ -127,9 +127,9 @@ export class CampScene extends Scene {
     this.powerText.position.set(width / 2, top);
 
     // Size the formation grid and list rows to fit the screen height.
-    const fightTop = this.fightButton.y - this.fightButton.buttonHeight / 2 - 10;
+    const buttonTop = this.mapButton.y - this.mapButton.buttonHeight / 2 - 10;
     const rows = this.tab === 'tavern' ? this.session.tavernOffers().length : this.session.trainingOffers().length;
-    const free = fightTop - (top + 34) - 18 - 56;
+    const free = buttonTop - (top + 34) - 18 - 56;
     const rowH = Math.max(52, Math.min(64, (free * 0.55) / Math.max(rows, 4)));
     const cell = Math.max(40, Math.min(68, (free - rowH * Math.max(rows, 4)) / 3));
 

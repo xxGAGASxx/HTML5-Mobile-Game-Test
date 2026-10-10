@@ -146,6 +146,15 @@ describe('Battle', () => {
     expect(outcome.ticks).toBe(TIME_LIMIT_TICKS);
   });
 
+  it('can start a unit below full HP, never above it', () => {
+    const battle = new Battle(
+      [{ ...unit('hurt', 'player', 0, 1), hp: 40 }, { ...unit('over', 'player', 0, 0), hp: 999 }, unit('e', 'enemy', 0, 1)],
+      1,
+    );
+    expect(battle.get('hurt')).toMatchObject({ hp: 40, maxHp: 100 });
+    expect(battle.get('over')).toMatchObject({ hp: 100, maxHp: 100 });
+  });
+
   it('ignores input after the battle ends', () => {
     const battle = new Battle([unit('p', 'player', 0, 1, 'fighter', { atk: 1000 }), unit('e', 'enemy', 0, 1, 'fighter', { hp: 1 })], 1);
     battle.runToEnd();

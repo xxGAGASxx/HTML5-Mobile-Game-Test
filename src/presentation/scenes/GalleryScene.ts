@@ -22,7 +22,7 @@ interface Slot {
 
 /**
  * Unit gallery (camp "Units" button, or `?gallery`): every unit in a grid looping attack, hit and
- * death, for checking sprites on the whole roster rather than only the units a wave happens to field.
+ * death, for checking sprites on the whole roster rather than only the units a battle happens to field.
  */
 export class GalleryScene extends Scene {
   private readonly tweens = new Tweens();

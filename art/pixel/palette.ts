@@ -37,6 +37,15 @@ export const RAMPS = {
   moss: ['#2a3a1c', '#40562a', '#5a7838', '#7e9a4c'],
   rock: ['#3a3640', '#58545e', '#7c7882', '#a4a0a8'],
   fire: ['#8a2410', '#d8501c', '#f8a030', '#fff0a0'],
+  // Island map (see the isometric forest reference).
+  grass: ['#2c4a1e', '#3f6a24', '#5e8f2e', '#86b440'],
+  leaf: ['#10281c', '#1a4228', '#285e34', '#3e7c42'],
+  canopy: ['#2a4a16', '#466e1e', '#6a9428', '#98bc3c'],
+  palm: ['#1e4a24', '#2e6e2c', '#4c9a34', '#80c44a'],
+  dirt: ['#5a3e24', '#7e5a34', '#a07a48', '#bf9a62'],
+  cliff: ['#2a2630', '#46404c', '#665e68', '#8a8288'],
+  earth: ['#4a3426', '#6a4a32', '#8a6440', '#a88052'],
+  deep: ['#0c2432', '#123848', '#1a4c5e', '#2a6878'],
 } as const satisfies Record<string, Ramp>;
 
 export const FOAM = '#e8f4f0';

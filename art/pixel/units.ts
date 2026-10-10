@@ -81,6 +81,19 @@ const RECIPES: Record<string, Recipe> = {
     boots: RAMPS.leather,
     weapon: 'cutlass',
   },
+  // Wreck Coast boss: the Bandit Chief, red coat, gold trim and a tricorn.
+  'bandit-chief': {
+    skin: RAMPS.skinTan,
+    hair: { style: 'long', ramp: RAMPS.hairDark },
+    headgear: { kind: 'tricorn', ramp: RAMPS.red, trim: RAMPS.gold },
+    torso: { style: 'coat', ramp: RAMPS.red, accent: RAMPS.gold },
+    cape: RAMPS.dark,
+    belt: RAMPS.gold,
+    legs: RAMPS.dark,
+    boots: RAMPS.leather,
+    weapon: 'cutlass',
+    shield: { kind: 'round', ramp: RAMPS.steel, accent: RAMPS.red },
+  },
   // Enemy shooter: skeleton pirate with a musket (undead palette, blood-red accent).
   'skull-gunner': {
     skin: RAMPS.bone,

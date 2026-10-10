@@ -11,6 +11,15 @@ export const ICON_SLUGS = [
   'camping-tent',
   'fast-forward-button',
   'sword-clash',
+  'skull-crossed-bones',
+  'ancient-ruins',
+  'fishing-pole',
+  'crowned-skull',
+  'treasure-map',
+  'check-mark',
+  'hourglass',
+  'open-treasure-chest',
+  'run',
 ] as const;
 
 export type IconSlug = (typeof ICON_SLUGS)[number];
