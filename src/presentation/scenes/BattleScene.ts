@@ -10,6 +10,7 @@ import { COLORS, FONT } from '../theme';
 import { Button } from '../ui/Button';
 import { ResourceBar } from '../ui/ResourceBar';
 import type { PixelUnit } from '../ui/PixelUnit';
+import { PotionButton } from '../ui/PotionButton';
 import { Scene } from './Scene';
 
 export interface BattleActions {
@@ -50,6 +51,7 @@ export class BattleScene extends Scene {
   private readonly meterLabel: Text;
   private readonly rallyButton: Button;
   private readonly speedButton: Button;
+  private readonly potionButtons = new Map<string, PotionButton>();
   private readonly overlay = new Container();
   private screenW = 0;
   private screenH = 0;
@@ -119,7 +121,11 @@ export class BattleScene extends Scene {
       fontSize: 16,
       onTap: () => this.toggleSpeed(),
     });
-    this.addChild(this.field, this.panel, this.meter, this.meterLabel, this.rallyButton, this.speedButton, this.bar, this.overlay);
+    for (const p of session.battlePotions()) {
+      const color = p.effect.kind === 'heal' ? COLORS.good : COLORS.danger;
+      this.potionButtons.set(p.potion.id, new PotionButton(icon(icons, p.potion.icon), color, () => this.session.usePotion(p.potion.id)));
+    }
+    this.addChild(this.field, this.panel, this.meter, this.meterLabel, ...this.potionButtons.values(), this.rallyButton, this.speedButton, this.bar, this.overlay);
     this.refreshHud();
   }
 
@@ -155,8 +161,14 @@ export class BattleScene extends Scene {
     this.panel.clear().rect(0, py, width, BOTTOM_PANEL).fill(COLORS.panel);
     const buttonsY = py + 88;
     this.speedButton.position.set(width - 16 - this.speedButton.buttonWidth / 2, buttonsY);
-    this.rallyButton.resize(width - 48 - this.speedButton.buttonWidth);
-    this.rallyButton.position.set(16 + this.rallyButton.buttonWidth / 2, buttonsY);
+    // Potions on the left, then Rally filling the room up to the speed toggle.
+    let left = 16;
+    for (const button of this.potionButtons.values()) {
+      button.position.set(left + PotionButton.SIZE / 2, buttonsY);
+      left += PotionButton.SIZE + 8;
+    }
+    this.rallyButton.resize(width - 16 - left - 8 - this.speedButton.buttonWidth);
+    this.rallyButton.position.set(left + this.rallyButton.buttonWidth / 2, buttonsY);
     this.meterLabel.position.set(width / 2, py + 26);
     this.drawMeter();
     this.layoutOverlay();
@@ -209,6 +221,15 @@ export class BattleScene extends Scene {
         break;
       case 'rallyFired':
         this.playRally(event.efficiency);
+        break;
+      case 'potionUsed':
+        this.playBanner(event.effect === 'heal' ? 'Healed!' : 'Boom!', event.effect === 'heal' ? COLORS.good : COLORS.danger);
+        break;
+      case 'healed':
+        this.playHeal(event.targetId, event.amount);
+        break;
+      case 'potionHit':
+        this.playHit(event.targetId, event.damage, event.killed, COLORS.danger, 'magic');
         break;
       case 'ended':
         this.end();
@@ -331,20 +352,51 @@ export class BattleScene extends Scene {
   }
 
   private playRally(efficiency: number): void {
-    const text = new Text({
-      text: efficiency < 1 ? 'Rally (auto)' : 'RALLY!',
-      style: { fontFamily: FONT, fontSize: 42, fontWeight: 'bold', fill: COLORS.rally, stroke: { color: 0x000000, width: 5 } },
+    this.playBanner(efficiency < 1 ? 'Rally (auto)' : 'RALLY!', COLORS.rally);
+  }
+
+  private playHeal(targetId: string, amount: number): void {
+    const token = this.tokens.get(targetId);
+    const target = this.combatant(targetId);
+    const pos = this.home.get(targetId);
+    if (!token || !target || !pos || this.dead.has(targetId)) return;
+    token.setHp(target.hp / target.maxHp);
+    const glow = new Graphics().circle(0, 0, this.cell * 0.4).fill({ color: COLORS.good, alpha: 0.35 });
+    glow.position.set(pos.x, pos.y - token.top / 2);
+    this.fx.addChild(glow);
+    this.tweens.play(glow.scale, { x: [0.5, 1.3], y: [0.5, 1.3], duration: 500, ease: 'outQuad' });
+    this.tweens.play(glow, { alpha: [1, 0], duration: 500, ease: 'outQuad', onComplete: () => glow.destroy() });
+    const popup = new Text({
+      text: `+${amount}`,
+      style: { fontFamily: FONT, fontSize: Math.round(14 + this.cell * 0.08), fontWeight: 'bold', fill: COLORS.good, stroke: { color: 0x000000, width: 3 } },
     });
+    popup.anchor.set(0.5);
+    popup.position.set(pos.x, pos.y - token.top);
+    this.fx.addChild(popup);
+    this.tweens.play(popup, { y: popup.y - this.cell * 0.5, alpha: [1, 0], duration: 800, ease: 'outCubic', onComplete: () => popup.destroy() });
+  }
+
+  /** Big word across the middle of the field. */
+  private playBanner(label: string, color: number): void {
+    const text = new Text({
+      text: label,
+      style: { fontFamily: FONT, fontSize: 42, fontWeight: 'bold', fill: color, stroke: { color: 0x000000, width: 5 }, padding: 6 },
+    });
+    // Never wider than the screen on a narrow phone.
+    const room = this.screenW - 32;
+    if (text.width > room) text.scale.set(room / text.width);
     text.anchor.set(0.5);
     text.position.set(this.screenW / 2, (this.screenH - ResourceBar.HEIGHT - BOTTOM_PANEL) / 2);
     this.fx.addChild(text);
-    this.tweens.play(text.scale, { x: [0.3, 1.1, 1], y: [0.3, 1.1, 1], duration: 400, ease: 'outBack' });
+    const s = text.scale.x;
+    this.tweens.play(text.scale, { x: [0.3 * s, 1.1 * s, s], y: [0.3 * s, 1.1 * s, s], duration: 400, ease: 'outBack' });
     this.tweens.play(text, { alpha: [1, 1, 0], duration: 1100, ease: 'inQuad', onComplete: () => text.destroy() });
   }
 
   private end(): void {
     this.report = this.session.finishBattle();
     this.rallyButton.enabled = false;
+    for (const [id, button] of this.potionButtons) button.set(this.session.satchel.count(id), false, 0);
     this.tweens.wait(700, () => this.showResults());
   }
 
@@ -415,6 +467,7 @@ export class BattleScene extends Scene {
     this.rallyButton.enabled = battle.rallyReady && !battle.isOver;
     const left = Math.max(0, Math.ceil((TIME_LIMIT_TICKS - battle.tick) / TICK_HZ));
     this.clock.text = `${left}s`;
+    for (const p of this.session.battlePotions()) this.potionButtons.get(p.potion.id)?.set(p.owned, p.canUse, p.cooldown);
     this.meterLabel.text = battle.rallyReady ? 'Rally ready!' : `Rally ${battle.rally}/${RALLY_MAX}`;
     this.drawMeter();
   }

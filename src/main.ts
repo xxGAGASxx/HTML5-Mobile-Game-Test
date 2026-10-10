@@ -44,6 +44,7 @@ import { MapScene } from './presentation/scenes/MapScene';
   session.events.subscribe('NodeCleared', (e) => services.analytics.track('node_cleared', { node: e.nodeId, auto: e.auto }));
   session.events.subscribe('RegionCleared', () => services.analytics.track('region_cleared', { region: CONTENT.region.id }));
   session.events.subscribe('UnitHired', (e) => services.analytics.track('unit_hired', { type: e.typeId }));
+  session.events.subscribe('PotionUsed', (e) => services.analytics.track('potion_used', { potion: e.potionId, node: e.nodeId }));
 
   const roster = [...CONTENT.playerUnits.map((type) => ({ type, enemy: false })), ...CONTENT.enemyUnits.map((type) => ({ type, enemy: true }))];
   const toMap = (focus?: string, reveal: readonly string[] = []): void =>

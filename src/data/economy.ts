@@ -1,3 +1,4 @@
+import type { PotionDef } from '../application/content';
 import type { Resources } from '../domain/economy';
 
 // Placeholder economy for the core loop prototype (GDD 08). Tune with `npm run sim`.
@@ -45,3 +46,19 @@ export const TRAIN_BASE: Readonly<Record<string, Resources>> = {
   'driftwood-wardens': { gold: 45, food: 15 },
   'tide-mystics': { gold: 55, food: 15 },
 };
+
+/**
+ * Potions (GDD 05 tonics). Mostly food, so they compete with hiring rather than training.
+ * Health heals 30% of max HP; Damage hits every enemy for 15 + 6 per tier, ignoring armour
+ * (about a quarter of a wolf at tier 1, under half a gunner at the boss).
+ */
+export const POTIONS: readonly PotionDef[] = [
+  { id: 'health', name: 'Health Potion', icon: 'heart-bottle', price: { gold: 15, food: 20 }, effect: { kind: 'heal', pct: 30 } },
+  { id: 'damage', name: 'Damage Potion', icon: 'fire-bomb', price: { gold: 25, food: 15 }, effect: { kind: 'blast', base: 15, perTier: 6 } },
+];
+
+/** Most of each potion the player can carry. */
+export const POTION_STACK = 3;
+
+/** One of each to start, so the first fights show what they do. */
+export const STARTING_POTIONS: Readonly<Record<string, number>> = { health: 1, damage: 1 };

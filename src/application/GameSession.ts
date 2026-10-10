@@ -1,13 +1,13 @@
 import { Army, armyPower, catalogOf, type ArmyEvent, type ArmyUnit, type Slot, type UnitCatalog, type UnitType } from '../domain/army';
-import type { BattleOutcome, BattleResultEvent } from '../domain/combat';
-import { NO_RESOURCES, Wallet, addResources, hirePrice, scaleResources, trainPrice, type EconomyEvent, type Resources } from '../domain/economy';
+import { POTION_COOLDOWN_TICKS, POTION_USES_PER_BATTLE, type BattleOutcome, type BattleResultEvent, type PotionEffect, type PotionUsedEvent } from '../domain/combat';
+import { NO_RESOURCES, Satchel, Wallet, addResources, hirePrice, scaleResources, trainPrice, type EconomyEvent, type Resources } from '../domain/economy';
 import { IslandMap, harvestYield, threatLabel, type ExplorationEvent, type NodeStatus, type ThreatLabel } from '../domain/exploration';
 import { UnitLevels, statsAtLevel, type ProgressionEvent } from '../domain/progression';
 import { EventBus } from '../domain/shared';
 import { battleLoot, battleThreat, fullClearLoot, startBattle, type PreparedBattle } from './combat';
-import type { GameContent, RegionNode } from './content';
+import type { GameContent, PotionDef, RegionNode } from './content';
 
-export type GameEvent = ArmyEvent | BattleResultEvent | EconomyEvent | ExplorationEvent | ProgressionEvent;
+export type GameEvent = ArmyEvent | BattleResultEvent | PotionUsedEvent | EconomyEvent | ExplorationEvent | ProgressionEvent;
 
 export interface TavernOffer {
   readonly type: UnitType;
@@ -26,6 +26,26 @@ export interface TrainingOffer {
   readonly powerAfter: number;
   readonly canTrain: boolean;
   readonly blockedBy?: 'max-level' | 'cost';
+}
+
+export interface PotionOffer {
+  readonly potion: PotionDef;
+  readonly owned: number;
+  readonly stackLimit: number;
+  readonly canBuy: boolean;
+  readonly blockedBy?: 'full' | 'cost';
+}
+
+/** A potion button in battle. */
+export interface BattlePotion {
+  readonly potion: PotionDef;
+  readonly owned: number;
+  /** What it does in this fight (blast damage follows the fight's tier). */
+  readonly effect: PotionEffect;
+  readonly canUse: boolean;
+  /** Share of the cooldown still to run, 1 = just used, 0 = ready. */
+  readonly cooldown: number;
+  readonly usesLeft: number;
 }
 
 export interface BattleReport {
@@ -77,6 +97,7 @@ export class GameSession {
   readonly wallet: Wallet;
   readonly army = new Army();
   readonly levels = new UnitLevels();
+  readonly satchel: Satchel;
   readonly map: IslandMap;
   readonly enemyCatalog: UnitCatalog;
   private readonly baseCatalog: UnitCatalog;
@@ -98,6 +119,7 @@ export class GameSession {
     this.leveledCatalog = this.baseCatalog;
     this.enemyCatalog = catalogOf(content.enemyUnits);
     this.wallet = new Wallet(content.startingResources);
+    this.satchel = new Satchel(content.potionStack, content.startingPotions);
     this.nodes = new Map(content.region.nodes.map((n) => [n.id, n]));
     this.map = new IslandMap(content.region.nodes);
     this.party = this.campId;
@@ -256,6 +278,71 @@ export class GameSession {
     this.events.publish({ type: 'UnitTrained', typeId, level });
     this.events.publish({ type: 'FormationChanged', power: this.power });
     return level;
+  }
+
+  potionOffers(): PotionOffer[] {
+    return this.content.potions.map((potion) => {
+      const full = this.satchel.isFull(potion.id);
+      const affordable = this.wallet.canAfford(potion.price);
+      return {
+        potion,
+        owned: this.satchel.count(potion.id),
+        stackLimit: this.satchel.stackLimit,
+        canBuy: !full && affordable,
+        blockedBy: full ? 'full' : affordable ? undefined : 'cost',
+      };
+    });
+  }
+
+  /** BuyPotion use case: pay and put one potion in the satchel. */
+  buyPotion(id: string): number {
+    const offer = this.potionOffers().find((o) => o.potion.id === id);
+    if (!offer) throw new Error(`No such potion: ${id}`);
+    if (!offer.canBuy) throw new Error(`Cannot buy ${id}: ${offer.blockedBy}`);
+    this.wallet.spend(offer.potion.price);
+    this.satchel.add(id);
+    this.events.publish({ type: 'CurrencySpent', amount: offer.potion.price, reason: `potion:${id}` });
+    return this.satchel.count(id);
+  }
+
+  /** Potion buttons for the running battle. */
+  battlePotions(): BattlePotion[] {
+    const active = this.active;
+    if (!active) return [];
+    const { battle } = active.prepared;
+    return this.content.potions.map((potion) => {
+      const owned = this.satchel.count(potion.id);
+      return {
+        potion,
+        owned,
+        effect: this.potionEffect(potion),
+        canUse: owned > 0 && battle.canUsePotion(potion.id),
+        cooldown: battle.potionCooldown(potion.id) / POTION_COOLDOWN_TICKS,
+        usesLeft: Math.max(0, POTION_USES_PER_BATTLE - battle.potionsUsed(potion.id)),
+      };
+    });
+  }
+
+  /** UsePotion use case: take one from the satchel and throw it into the running battle. */
+  usePotion(id: string): boolean {
+    const active = this.active;
+    if (!active) throw new Error('No battle running');
+    const potion = this.content.potions.find((p) => p.id === id);
+    if (!potion) throw new Error(`No such potion: ${id}`);
+    if (this.satchel.count(id) <= 0) return false;
+    if (!active.prepared.battle.usePotion(id, this.potionEffect(potion))) return false;
+    this.satchel.take(id);
+    this.events.publish({ type: 'PotionUsed', potionId: id, nodeId: active.nodeId });
+    return true;
+  }
+
+  /** A potion's effect in the running battle: blasts hit harder at deeper tiers and lower ruin floors. */
+  private potionEffect(potion: PotionDef): PotionEffect {
+    const e = potion.effect;
+    if (e.kind === 'heal') return e;
+    const node = this.active ? this.node(this.active.nodeId) : undefined;
+    const tier = (node?.tier ?? 1) + (this.ruin?.floor ?? 0);
+    return { kind: 'blast', damage: Math.round(e.base + e.perTier * tier) };
   }
 
   moveUnit(unitId: string, to: Slot): void {

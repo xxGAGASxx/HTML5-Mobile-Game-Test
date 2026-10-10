@@ -18,7 +18,7 @@ the black background square was removed so the white silhouettes can be tinted i
 
 | Icon | Author |
 |---|---|
-| meat, crossed-swords, sword-clash, skull-crossed-bones, crowned-skull, treasure-map, hourglass, run | Lorc |
+| meat, crossed-swords, sword-clash, skull-crossed-bones, crowned-skull, treasure-map, hourglass, run, heart-bottle, fire-bomb | Lorc |
 | two-coins, camping-tent, fast-forward-button, ancient-ruins, fishing-pole, check-mark | Delapouite |
 | open-treasure-chest | Skoll |
 

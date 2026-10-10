@@ -20,6 +20,8 @@ export const ICON_SLUGS = [
   'hourglass',
   'open-treasure-chest',
   'run',
+  'heart-bottle',
+  'fire-bomb',
 ] as const;
 
 export type IconSlug = (typeof ICON_SLUGS)[number];

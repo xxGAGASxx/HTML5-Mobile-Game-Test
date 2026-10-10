@@ -4,6 +4,8 @@ export {
   Battle,
   CAPTAIN_TAP_ATK,
   MAX_TAPS_PER_SECOND,
+  POTION_COOLDOWN_TICKS,
+  POTION_USES_PER_BATTLE,
   RALLY_MAX,
   TICK_HZ,
   TICK_MS,
@@ -14,6 +16,7 @@ export {
   type Combatant,
   type CombatantSpec,
   type CombatEvent,
+  type PotionEffect,
   type Side,
 } from './Battle';
-export type { BattleResultEvent } from './events';
+export type { BattleResultEvent, PotionUsedEvent } from './events';

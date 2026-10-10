@@ -76,6 +76,11 @@ Strong vs.: +25% damage dealt.
 No consumables required to enter battles (reference complaint [R]). Optional **tonics** (heal 30%,
 +20% ATK for one battle) bought with food; at most 2 per battle.
 
+Prototype: two potions from the camp's Potions tab, mostly paid in food. **Health Potion** heals
+every living unit 30% of max HP; **Damage Potion** hits every enemy for 15 + 6 per tier, ignoring
+armour. Carry up to 3 of each; in battle each is a tap button with a 5 s cooldown, at most 2 of
+each kind per battle. Every run starts with one of each.
+
 ### Numbers display
 
 Use short suffixes (1.2K, 3.4M) and keep enemy HP growth around ×1.12 per region tier to avoid the
