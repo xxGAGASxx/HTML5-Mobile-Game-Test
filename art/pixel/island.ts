@@ -54,6 +54,11 @@ export interface IslandBake {
   fires: [number, number][];
   /** Open-water spots for glints. */
   glints: [number, number][];
+  /**
+   * Every road as a walkable line on the art, keyed `from|to` as the link is written in the region
+   * data: points every few pixels from node to node, lifted onto the tiles (and bridges) it crosses.
+   */
+  roads: Record<string, [number, number][]>;
 }
 
 /** The Wreck Coast: beach in the south around the wreck, grassland in the middle, cliffs and the fort up north. */
@@ -175,7 +180,7 @@ export function bakeIsland(region: RegionSpec, design: IslandDesign): IslandBake
     const t = nodeTiles.get(id)!;
     return { x: t.cx, y: t.cy };
   };
-  const roadPoints: { x: number; y: number }[] = [];
+  const roadLines = new Map<string, { x: number; y: number }[]>();
   const bend = rng(design.seed + 5);
   for (const node of region.nodes) {
     for (const other of node.links) {
@@ -186,11 +191,13 @@ export function bakeIsland(region: RegionSpec, design: IslandDesign): IslandBake
       const mx = (a.x + b.x) / 2 + (-(b.y - a.y) / len) * off;
       const my = (a.y + b.y) / 2 + ((b.x - a.x) / len) * off;
       const steps = Math.ceil(len);
+      const line: { x: number; y: number }[] = [];
+      roadLines.set(`${node.id}|${other}`, line);
       for (let i = 0; i <= steps; i++) {
         const tt = i / steps;
         const x = (1 - tt) ** 2 * a.x + 2 * (1 - tt) * tt * mx + tt ** 2 * b.x;
         const y = (1 - tt) ** 2 * a.y + 2 * (1 - tt) * tt * my + tt ** 2 * b.y;
-        roadPoints.push({ x, y });
+        line.push({ x, y });
         for (let dy = -6; dy <= 6; dy++) {
           for (let dx = -7; dx <= 7; dx++) {
             const px = Math.round(x + dx);
@@ -281,8 +288,38 @@ export function bakeIsland(region: RegionSpec, design: IslandDesign): IslandBake
 
   queue.sort((a, b) => a.k - b.k);
   for (const item of queue) item.draw();
-  void roadPoints;
-  return { canvas, nodes: nodeOut, fires, glints };
+  // Walkable lines: the road curves lifted by the height of the ground (or bridge deck) under them,
+  // smoothed so the party eases up and down cliffs instead of jumping.
+  const roads: IslandBake['roads'] = {};
+  for (const [k, line] of roadLines) {
+    const lift = line.map((p) => {
+      const t = tileUnder(p.x, p.y);
+      if (!t) return 0;
+      if (t.h > 0) return t.h * LEVEL;
+      const banks = edgeNeighbours(t).filter((n): n is Tile => !!n && n.h > 0);
+      return Math.max(1, ...banks.map((n) => n.h)) * LEVEL;
+    });
+    const out: [number, number][] = [];
+    for (let i = 0; i < line.length; i += 3) {
+      let sum = 0;
+      let n = 0;
+      for (let j = Math.max(0, i - 6); j <= Math.min(line.length - 1, i + 6); j++) {
+        sum += lift[j]!;
+        n++;
+      }
+      out.push([Math.round(line[i]!.x * 2) / 2, Math.round((line[i]!.y - sum / n) * 2) / 2]);
+    }
+    const last = line.at(-1)!;
+    out.push([last.x, last.y - lift.at(-1)!]);
+    roads[k] = out;
+  }
+  // Ends of every road meet their nodes' marker points exactly.
+  for (const [k, pts] of Object.entries(roads)) {
+    const [a, b] = k.split('|') as [string, string];
+    pts[0] = [nodeOut[a]!.x, nodeOut[a]!.y];
+    pts[pts.length - 1] = [nodeOut[b]!.x, nodeOut[b]!.y];
+  }
+  return { canvas, nodes: nodeOut, fires, glints, roads };
 }
 
 function landmarkRadius(node: RegionNode): number {

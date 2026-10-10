@@ -9,6 +9,8 @@ export interface MapAsset {
   nodes: Record<string, { x: number; y: number }>;
   fires: [number, number][];
   glints: [number, number][];
+  /** Walkable road lines keyed `from|to`, node to node, in art pixels. */
+  roads: Record<string, [number, number][]>;
 }
 
 export async function loadMap(regionId: string): Promise<MapAsset> {

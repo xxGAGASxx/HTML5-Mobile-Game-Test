@@ -6,6 +6,7 @@ import { icon, type Icons } from '../assets/icons';
 import type { MapAsset } from '../assets/maps';
 import { frames, type PixelAssets } from '../assets/pixel';
 import { formatNumber } from '../format';
+import { RoadNetwork, type Leg, type RoadPos } from '../map/RoadNetwork';
 import { Tweens } from '../Tweens';
 import { COLORS, FONT } from '../theme';
 import { Button } from '../ui/Button';
@@ -20,6 +21,10 @@ const PAD = 16;
 const DRAG_THRESHOLD = 8;
 /** Pan speed keeps this share of itself per 16 ms frame after a flick. */
 const FRICTION = 0.9;
+/** Party walking speed, in map art pixels per second. */
+const WALK_SPEED = 80;
+/** How far from a road (screen px) a tap still counts as a tap on it. */
+const ROAD_TAP_RADIUS = 26;
 
 export const THREAT_COLORS: Record<ThreatLabel, number> = {
   trivial: 0x9aa4ac,
@@ -70,10 +75,20 @@ interface Marker {
 
 /** Where the view was, so coming back from a battle or the camp keeps the player's place. */
 let lastView: { x: number; y: number } | null = null;
+/** Where the party stood, including partway along a road. */
+let lastParty: RoadPos | null = null;
+
+/** A walk in progress: the legs left, how far along the current one, and the node to open on arrival. */
+interface Walking {
+  legs: Leg[];
+  d: number;
+  target: string | null;
+}
 
 /**
  * The island map (GDD 04, 11): the baked isometric region art, node markers coloured by Threat,
- * fog clouds over unexplored nodes, and a card for the tapped node. Drag (or scroll) to pan.
+ * fog clouds over unexplored nodes, and a card for the tapped node. Tap a node or a road and the
+ * party walks there along the roads, through cleared nodes only. Drag (or scroll) to pan.
  */
 export class MapScene extends Scene {
   private readonly tweens = new Tweens();
@@ -91,6 +106,13 @@ export class MapScene extends Scene {
   private readonly progress: Text;
   private readonly card = new Container();
   private readonly zoomHint: Text;
+  private readonly roads: RoadNetwork;
+  private readonly party = new Container();
+  private readonly partyUnit: PixelUnit;
+  private partyPos: RoadPos;
+  private walking: Walking | null = null;
+  private walked = 0;
+  private follow = false;
   private zoom = 2;
   private screenW = 0;
   private screenH = 0;
@@ -113,7 +135,11 @@ export class MapScene extends Scene {
     this.bar = new ResourceBar(icons, this.tweens);
     this.bar.set(session.wallet.balance);
     this.ground = new Sprite(map.texture);
-    this.world.addChild(this.ground, this.fx, this.markerLayer, this.fog);
+    this.roads = new RoadNetwork(map.roads);
+    this.partyPos = startingPosition(session.partyAt);
+    this.partyUnit = new PixelUnit(pixel, 'bosun-marla', () => 1, false);
+    this.party.addChild(this.partyUnit);
+    this.world.addChild(this.ground, this.fx, this.markerLayer, this.party, this.fog);
 
     this.campButton = new Button({
       label: 'Camp',
@@ -125,7 +151,7 @@ export class MapScene extends Scene {
     });
     this.progress = new Text({ text: '', style: { fontFamily: FONT, fontSize: 13, fill: COLORS.muted, lineHeight: 18 } });
     this.progress.anchor.set(0, 0.5);
-    this.zoomHint = new Text({ text: 'Drag to explore', style: { fontFamily: FONT, fontSize: 13, fontWeight: 'bold', fill: COLORS.text, stroke: { color: 0x000000, width: 3 } } });
+    this.zoomHint = new Text({ text: 'Tap to move · drag to look around', style: { fontFamily: FONT, fontSize: 13, fontWeight: 'bold', fill: COLORS.text, stroke: { color: 0x000000, width: 3 } } });
     this.zoomHint.anchor.set(0.5);
 
     this.eventMode = 'static';
@@ -155,6 +181,7 @@ export class MapScene extends Scene {
     if (zoom !== this.zoom || firstLayout) {
       this.zoom = zoom;
       this.ground.scale.set(zoom);
+      this.partyUnit.setSize(Math.max(1, zoom - 1));
       this.placeWorldObjects();
     }
     this.hitArea = new Rectangle(0, 0, width, height);
@@ -185,6 +212,7 @@ export class MapScene extends Scene {
       this.velocity.y *= decay;
     }
     for (const g of this.glints) if (!g.playing && Math.random() < deltaMs / 2500) g.gotoAndPlay(0);
+    this.stepWalk(deltaMs);
     // Respawn timers and resource sites tick on the wall clock.
     this.refreshIn -= deltaMs;
     if (this.refreshIn <= 0) this.refresh();
@@ -192,6 +220,7 @@ export class MapScene extends Scene {
 
   override destroy(options?: Parameters<Scene['destroy']>[0]): void {
     lastView = { x: this.world.x, y: this.world.y };
+    lastParty = this.partyPos;
     this.tweens.cancelAll();
     super.destroy(options);
   }
@@ -227,6 +256,7 @@ export class MapScene extends Scene {
 
   private onDown(e: FederatedPointerEvent): void {
     this.velocity = { x: 0, y: 0 };
+    this.follow = false; // the player takes the camera
     if (e.global.y < this.viewTop || e.global.y > this.cardTop()) return;
     this.press = { x: e.global.x, y: e.global.y, viewX: this.world.x, viewY: this.world.y, dragging: false, lastX: e.global.x, lastY: e.global.y, t: performance.now() };
   }
@@ -254,7 +284,121 @@ export class MapScene extends Scene {
       return;
     }
     if (e.type !== 'pointerup') return;
-    this.select(this.nodeAt(e.global.x, e.global.y));
+    this.onTap(e.global.x, e.global.y);
+  }
+
+  // --- movement --------------------------------------------------------------------------------
+
+  /** Tap on a node: walk there and show its card. Tap on a road: walk to that spot. Else close the card. */
+  private onTap(x: number, y: number): void {
+    const id = this.nodeAt(x, y);
+    if (id) {
+      this.selected = id;
+      this.ensureVisible(id);
+      if (!this.isPartyAt(id)) this.goTo({ node: id }, id, x, y);
+      this.refresh();
+      return;
+    }
+    const revealed = (n: string): boolean => this.session.map.isRevealed(n);
+    const spot = this.roads.nearest((x - this.world.x) / this.zoom, (y - this.world.y) / this.zoom, ROAD_TAP_RADIUS / this.zoom, (a, b) => revealed(a) && revealed(b));
+    this.selected = spot && 'node' in spot ? spot.node : null;
+    if (spot) this.goTo(spot, this.selected, x, y);
+    this.refresh();
+  }
+
+  /** Plans a walk from where the party is now (even mid-walk) and sets off. */
+  private goTo(target: RoadPos, openOnArrival: string | null, tapX: number, tapY: number): void {
+    const map = this.session.map;
+    const walk = this.roads.plan(this.partyPos, target, (n) => map.isConquered(n));
+    if (!walk) {
+      this.floatAt(tapX - this.world.x, tapY - this.world.y, 'Clear the way first', COLORS.danger);
+      return;
+    }
+    if (!walk.legs.length) return;
+    this.walking = { legs: [...walk.legs], d: walk.legs[0]!.from, target: openOnArrival };
+    this.follow = true;
+    this.drawTargetMark(target);
+  }
+
+  private isPartyAt(id: string): boolean {
+    return !this.walking && 'node' in this.partyPos && this.partyPos.node === id && this.session.partyAt === id;
+  }
+
+  /** Moves the party along its legs; each node it reaches becomes its place in the session. */
+  private stepWalk(deltaMs: number): void {
+    const w = this.walking;
+    if (!w) return;
+    let budget = (WALK_SPEED * deltaMs) / 1000;
+    while (budget > 0 && w.legs.length) {
+      const leg = w.legs[0]!;
+      const dir = Math.sign(leg.to - leg.from) || 1;
+      const left = Math.abs(leg.to - w.d);
+      const step = Math.min(left, budget);
+      w.d += dir * step;
+      budget -= step;
+      this.walked += step;
+      this.partyPos = { a: leg.a, b: leg.b, d: w.d };
+      if (step >= left) {
+        w.legs.shift();
+        const len = this.roads.length(leg.a, leg.b);
+        const node = leg.to <= 0 ? leg.a : leg.to >= len ? leg.b : null;
+        if (node) {
+          this.partyPos = { node };
+          this.session.travel(node);
+        }
+        if (w.legs.length) w.d = w.legs[0]!.from;
+      }
+    }
+    this.placeParty(true);
+    if (this.follow) this.followParty();
+    if (!w.legs.length) {
+      this.walking = null;
+      this.clearTargetMark();
+      this.partyUnit.body.y = 0;
+      this.refresh();
+    }
+  }
+
+  private placeParty(moving = false): void {
+    const z = this.zoom;
+    const p = this.roads.pointAt(this.partyPos);
+    const prevX = this.party.x;
+    // Near a node the party steps aside so its marker stays readable.
+    const pos = this.partyPos;
+    const fromNode = 'node' in pos ? 0 : Math.min(pos.d, this.roads.length(pos.a, pos.b) - pos.d);
+    const aside = Math.max(0, 1 - fromNode / 14) * 13;
+    this.party.position.set(Math.round((p.x + aside) * z), Math.round((p.y + aside * 0.3) * z) - 6 * z);
+    if (moving) {
+      const dx = this.party.x - prevX;
+      if (Math.abs(dx) > 0.5) this.partyUnit.body.scale.x = dx < 0 ? -1 : 1;
+      this.partyUnit.body.y = -Math.abs(Math.sin(this.walked * 0.35)) * 2 * z; // little hop per step
+    }
+  }
+
+  /** Keeps the walking party in the middle of the view, easing towards it. */
+  private followParty(): void {
+    const viewMid = (this.viewTop + Math.min(this.viewBottom, this.cardTop())) / 2;
+    const tx = this.screenW / 2 - this.party.x;
+    const ty = viewMid - this.party.y;
+    this.panTo(this.world.x + (tx - this.world.x) * 0.08, this.world.y + (ty - this.world.y) * 0.08);
+  }
+
+  private readonly targetMark = new Graphics();
+
+  private drawTargetMark(target: RoadPos): void {
+    const z = this.zoom;
+    const p = this.roads.pointAt(target);
+    this.targetMark
+      .clear()
+      .ellipse(0, 0, 7 * z, 3.5 * z)
+      .stroke({ width: z, color: COLORS.text, alpha: 0.9 });
+    this.targetMark.position.set(p.x * z, p.y * z);
+    if (!this.targetMark.parent) this.world.addChildAt(this.targetMark, this.world.getChildIndex(this.party));
+    this.targetMark.alpha = 1;
+  }
+
+  private clearTargetMark(): void {
+    this.targetMark.clear();
   }
 
   /** The visible node whose marker is under a screen point, if any. */
@@ -357,6 +501,7 @@ export class MapScene extends Scene {
       group.position.set(p.x * z, (p.y - 8) * z);
       group.scale.set(z);
     }
+    this.placeParty();
   }
 
   private playReveals(): void {
@@ -469,13 +614,6 @@ export class MapScene extends Scene {
     m.label.text = text;
     m.label.position.set(0, 4);
     m.label.style.fill = status.kind === 'respawning' ? COLORS.muted : status.kind === 'open' && info.label ? THREAT_COLORS[info.label] : COLORS.text;
-  }
-
-  private select(id: string | null): void {
-    if (id === this.selected) id = null;
-    this.selected = id;
-    if (id) this.ensureVisible(id);
-    this.refresh();
   }
 
   /** Pans so a tapped node is not hidden behind the card. */
@@ -594,6 +732,16 @@ export class MapScene extends Scene {
     const status = info.status;
     const make = (label: string, slug: string, onTap: () => void, color: number = COLORS.rally): Button =>
       new Button({ label, width: 120, height: 52, fontSize: 17, icon: icon(this.icons, slug), color, onTap });
+    if (!this.isPartyAt(id) && status.kind !== 'hidden') {
+      const heading = this.walking?.target === id;
+      const blocked = !heading && !this.roads.plan(this.partyPos, { node: id }, (n) => this.session.map.isConquered(n));
+      const go = make(heading ? 'Walking…' : blocked ? 'Clear the way first' : 'Go here', heading ? 'run' : 'treasure-map', () => {
+        this.goTo({ node: id }, id, this.screenW / 2, this.cardTop());
+        queueMicrotask(() => !this.destroyed && this.refresh()); // the card holding this button is rebuilt
+      });
+      go.enabled = !heading && !blocked;
+      return [go];
+    }
     switch (status.kind) {
       case 'camp':
         return [make('Enter camp', 'camping-tent', () => this.actions.onCamp())];
@@ -647,13 +795,25 @@ export class MapScene extends Scene {
 
   private floatText(id: string, text: string): void {
     const marker = this.markers.get(id);
-    if (!marker) return;
-    const t = new Text({ text, style: { fontFamily: FONT, fontSize: 16, fontWeight: 'bold', fill: COLORS.gold, stroke: { color: 0x000000, width: 4 } } });
+    if (marker) this.floatAt(marker.root.x, marker.root.y - 40, text, COLORS.gold);
+  }
+
+  /** Text that rises and fades at a point in world (map) coordinates. */
+  private floatAt(x: number, y: number, text: string, color: number): void {
+    const t = new Text({ text, style: { fontFamily: FONT, fontSize: 15, fontWeight: 'bold', fill: color, stroke: { color: 0x000000, width: 4 } } });
     t.anchor.set(0.5);
-    t.position.set(marker.root.x, marker.root.y - 40);
+    t.position.set(x, y);
     this.world.addChild(t);
     this.tweens.play(t, { y: t.y - 30, alpha: [1, 0], duration: 1000, ease: 'outCubic', onComplete: () => t.destroy() });
   }
+}
+
+/** Where the party starts this scene: where it was last time if that still fits the session, else on its node. */
+function startingPosition(partyAt: string): RoadPos {
+  const p = lastParty;
+  if (p && 'node' in p && p.node === partyAt) return p;
+  if (p && !('node' in p) && (p.a === partyAt || p.b === partyAt)) return p;
+  return { node: partyAt };
 }
 
 /** 1h 42m, 12m, 40s. */

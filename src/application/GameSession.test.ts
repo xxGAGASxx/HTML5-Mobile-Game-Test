@@ -61,7 +61,7 @@ describe('GameSession', () => {
     session.events.subscribe('BattleWon', (e) => events.push(e));
     session.events.subscribe('NodeCleared', (e) => events.push(e));
     expect(session.nodeInfo('bandit-lookout').status.kind).toBe('hidden');
-    session.beginBattle('crab-shallows').battle.runToEnd();
+    fightAt(session, 'crab-shallows').battle.runToEnd();
     const report = session.finishBattle();
     expect(report.outcome.winner).toBe('player');
     expect(report.loot.gold).toBeGreaterThan(0);
@@ -73,7 +73,7 @@ describe('GameSession', () => {
 
   it('keeps the node open after a loss but still pays partial loot, without the clear bonus', () => {
     const weak = new GameSession({ ...CONTENT, startingArmy: ['castaway-archers'] });
-    weak.beginBattle('crab-shallows').battle.runToEnd();
+    fightAt(weak, 'crab-shallows').battle.runToEnd();
     const report = weak.finishBattle();
     expect(report.outcome.winner).toBe('enemy');
     expect(report.revealed).toEqual([]);
@@ -86,17 +86,19 @@ describe('GameSession', () => {
     expect(() => session.finishBattle()).toThrow();
     expect(() => session.beginBattle('bandit-fort')).toThrow(); // under the fog
     expect(() => session.beginBattle('camp')).toThrow();
-    session.beginBattle('crab-shallows');
+    expect(() => session.beginBattle('crab-shallows')).toThrow(); // the party is still in camp
+    fightAt(session, 'crab-shallows');
     expect(() => session.beginBattle('driftwood-beach')).toThrow();
+    expect(() => session.travel('driftwood-beach')).toThrow(); // no walking mid-battle
     expect(() => session.finishBattle()).toThrow();
   });
 
   it('respawns a cleared encounter after 2 hours', () => {
     let now = 0;
     const session = new GameSession(CONTENT, 1, () => now);
-    session.beginBattle('crab-shallows').battle.runToEnd();
+    fightAt(session, 'crab-shallows').battle.runToEnd();
     session.finishBattle();
-    expect(() => session.beginBattle('crab-shallows')).toThrow();
+    expect(() => fightAt(session, 'crab-shallows')).toThrow();
     now = 2 * HOUR_MS;
     expect(session.nodeInfo('crab-shallows').status).toEqual({ kind: 'open', firstClear: false });
   });
@@ -118,16 +120,20 @@ describe('GameSession', () => {
     expect(info.label).toBe('trivial');
     expect(info.canAutoClear).toBe(true);
     const before = session.wallet.balance.gold;
+    session.travel('crab-shallows');
     const { loot, revealed } = session.autoClear('crab-shallows');
     expect(loot.gold).toBe(Math.floor(info.loot.gold * CONTENT.autoClearShare));
     expect(session.wallet.balance.gold).toBe(before + loot.gold);
     expect(revealed).toEqual(['bandit-lookout']);
+    expect(() => session.autoClear('driftwood-beach')).toThrow(); // the party is not there
+    session.travel('driftwood-beach');
     expect(() => session.autoClear('driftwood-beach')).not.toThrow();
   });
 
   it('refuses to auto-clear a node that is not Trivial', () => {
     const session = new GameSession(CONTENT);
     expect(session.nodeInfo('crab-shallows').canAutoClear).toBe(false);
+    session.travel('crab-shallows');
     expect(() => session.autoClear('crab-shallows')).toThrow();
   });
 
@@ -137,7 +143,7 @@ describe('GameSession', () => {
     for (let i = 0; i < 6; i++) session.train('driftwood-wardens');
     clearPath(session, ['crab-shallows', 'bandit-lookout', 'wolf-den']);
 
-    const first = session.beginBattle('sunken-shrine');
+    const first = fightAt(session, 'sunken-shrine');
     first.battle.runToEnd();
     const floor1 = session.finishBattle();
     expect(floor1.floor).toEqual({ index: 0, count: 3 });
@@ -145,12 +151,12 @@ describe('GameSession', () => {
     expect(session.nodeInfo('sunken-shrine').status.kind).toBe('open');
     const wounded = first.battle.combatants.find((c) => c.spec.side === 'player' && c.hp < c.maxHp && c.hp > 0)!;
 
-    const second = session.beginBattle('sunken-shrine');
+    const second = fightAt(session, 'sunken-shrine');
     expect(second.battle.get(wounded.spec.id)!.hp).toBe(wounded.hp);
     second.battle.runToEnd();
     expect(session.finishBattle().floor).toEqual({ index: 1, count: 3 });
 
-    session.beginBattle('sunken-shrine').battle.runToEnd();
+    fightAt(session, 'sunken-shrine').battle.runToEnd();
     const last = session.finishBattle();
     expect(last.nextFloor).toBe(false);
     expect(last.treasure).toEqual(CONTENT.ruinTreasure(4));
@@ -163,10 +169,10 @@ describe('GameSession', () => {
     while (!session.army.isFull) session.hire('driftwood-wardens');
     for (let i = 0; i < 6; i++) session.train('driftwood-wardens');
     clearPath(session, ['crab-shallows', 'bandit-lookout', 'wolf-den']);
-    session.beginBattle('sunken-shrine').battle.runToEnd();
+    fightAt(session, 'sunken-shrine').battle.runToEnd();
     session.finishBattle();
     session.retreat();
-    session.beginBattle('sunken-shrine').battle.runToEnd();
+    fightAt(session, 'sunken-shrine').battle.runToEnd();
     expect(session.finishBattle().floor?.index).toBe(0);
   });
 
@@ -185,17 +191,36 @@ describe('GameSession', () => {
     expect(session.nodeInfo('fishing-rocks').harvest!.food).toBe(0);
   });
 
+  it('walks the party along paths, through cleared nodes only', () => {
+    const session = new GameSession(CONTENT);
+    expect(session.partyAt).toBe('camp');
+    expect(session.routeTo('bandit-lookout')).toBeNull(); // in the fog
+    fightAt(session, 'crab-shallows').battle.runToEnd();
+    session.finishBattle();
+    expect(session.travel('camp')).toEqual(['crab-shallows', 'camp']);
+    expect(session.routeTo('bandit-lookout')).toEqual(['camp', 'crab-shallows', 'bandit-lookout']);
+    expect(() => session.beginBattle('bandit-lookout')).toThrow();
+    session.travel('bandit-lookout');
+    expect(session.partyAt).toBe('bandit-lookout');
+  });
+
   it('reads Power synchronously at battle start', () => {
     const session = new GameSession(rich());
     session.hire('driftwood-wardens');
-    expect(session.beginBattle('crab-shallows').power).toBe(session.power);
+    expect(fightAt(session, 'crab-shallows').power).toBe(session.power);
   });
 });
+
+/** Walks the party to a node (if it is not there yet) and starts its next battle. */
+function fightAt(session: GameSession, id: string) {
+  if (session.partyAt !== id) session.travel(id);
+  return session.beginBattle(id);
+}
 
 /** Wins each node in order (the army must be strong enough). */
 function clearPath(session: GameSession, ids: string[]): void {
   for (const id of ids) {
-    session.beginBattle(id).battle.runToEnd();
+    fightAt(session, id).battle.runToEnd();
     const report = session.finishBattle();
     if (report.outcome.winner !== 'player') throw new Error(`Lost at ${id}`);
   }

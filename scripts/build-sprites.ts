@@ -88,7 +88,7 @@ const island = bakeIsland(WRECK_COAST, WRECK_COAST_DESIGN);
 writeFileSync(join(MAPS_OUT, `${WRECK_COAST.id}.png`), png(island.canvas));
 writeFileSync(
   join(MAPS_OUT, `${WRECK_COAST.id}.json`),
-  JSON.stringify({ width: island.canvas.w, height: island.canvas.h, nodes: island.nodes, fires: island.fires, glints: island.glints }) + '\n',
+  JSON.stringify({ width: island.canvas.w, height: island.canvas.h, nodes: island.nodes, fires: island.fires, glints: island.glints, roads: island.roads }) + '\n',
 );
 console.log(`${WRECK_COAST.id}.png ${island.canvas.w}x${island.canvas.h}, ${Object.keys(island.nodes).length} nodes`);
 

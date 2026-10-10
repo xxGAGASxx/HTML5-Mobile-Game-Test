@@ -119,6 +119,32 @@ export class IslandMap {
     return hiddenBefore.filter((n) => this.isRevealed(n));
   }
 
+  /**
+   * Shortest walk along paths from `from` to `to` (both included), or null when there is none.
+   * The party may only pass through nodes cleared at least once: an uncleared node stops it until
+   * it is beaten. The destination must be out of the fog.
+   */
+  route(from: string, to: string): string[] | null {
+    this.def(from);
+    if (!this.isRevealed(to)) return null;
+    const prev = new Map<string, string | null>([[from, null]]);
+    const queue = [from];
+    while (queue.length) {
+      const at = queue.shift()!;
+      if (at === to) break;
+      if (at !== from && !this.isConquered(at)) continue;
+      for (const next of this.adjacent.get(at)!) {
+        if (prev.has(next)) continue;
+        prev.set(next, at);
+        queue.push(next);
+      }
+    }
+    if (!prev.has(to)) return null;
+    const path: string[] = [];
+    for (let at: string | null = to; at !== null; at = prev.get(at)!) path.unshift(at);
+    return path;
+  }
+
   /** True once every boss on the map has been beaten. */
   get regionCleared(): boolean {
     const bosses = [...this.defs.values()].filter((d) => d.kind === 'boss');

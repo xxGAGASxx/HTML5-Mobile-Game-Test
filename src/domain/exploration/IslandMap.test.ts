@@ -78,6 +78,33 @@ describe('IslandMap', () => {
     expect(map.sinceHarvest('fish', 1000 + HOUR_MS)).toBe(0);
   });
 
+  it('routes along paths through cleared nodes only', () => {
+    const map = new IslandMap(NODES);
+    expect(map.route('camp', 'a')).toEqual(['camp', 'a']);
+    expect(map.route('camp', 'camp')).toEqual(['camp']);
+    expect(map.route('camp', 'b')).toBeNull(); // still in the fog
+    map.clear('a', 0);
+    expect(map.route('camp', 'b')).toEqual(['camp', 'a', 'b']);
+    expect(map.route('b', 'camp')).toEqual(['b', 'a', 'camp']);
+    expect(map.route('camp', 'boss')).toBeNull(); // hidden behind b
+    map.clear('b', 0);
+    expect(map.route('elite', 'boss')).toEqual(['elite', 'a', 'b', 'boss']);
+  });
+
+  it('lets the party leave an uncleared node it stands on, but not pass through one', () => {
+    const map = new IslandMap(NODES);
+    map.clear('a', 0);
+    map.clear('b', 0);
+    expect(map.route('elite', 'camp')).toEqual(['elite', 'a', 'camp']);
+    expect(map.route('fish', 'boss')).toEqual(['fish', 'b', 'boss']);
+    const blocked = new IslandMap([
+      { id: 'camp', kind: 'camp', links: ['x'] },
+      { id: 'x', kind: 'encounter', links: ['y'] },
+      { id: 'y', kind: 'encounter', links: [] },
+    ]);
+    expect(blocked.route('camp', 'y')).toBeNull();
+  });
+
   it('rejects maps with unknown links or no single camp', () => {
     expect(() => new IslandMap([{ id: 'camp', kind: 'camp', links: ['nowhere'] }])).toThrow();
     expect(() => new IslandMap([{ id: 'a', kind: 'encounter', links: [] }])).toThrow();

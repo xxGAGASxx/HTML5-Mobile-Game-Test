@@ -86,6 +86,7 @@ export class GameSession {
   private readonly hires = new Map<string, number>();
   private active: { nodeId: string; prepared: PreparedBattle } | null = null;
   private ruin: RuinRun | null = null;
+  private party: string;
 
   constructor(
     private readonly content: GameContent,
@@ -99,6 +100,7 @@ export class GameSession {
     this.wallet = new Wallet(content.startingResources);
     this.nodes = new Map(content.region.nodes.map((n) => [n.id, n]));
     this.map = new IslandMap(content.region.nodes);
+    this.party = this.campId;
     for (const typeId of content.startingArmy) this.army.add(typeId, this.playerCatalog);
   }
 
@@ -124,6 +126,27 @@ export class GameSession {
   get ruinFloor(): { nodeId: string; index: number; count: number } | null {
     if (!this.ruin) return null;
     return { nodeId: this.ruin.nodeId, index: this.ruin.floor, count: this.node(this.ruin.nodeId).battles.length };
+  }
+
+  /** The node the party stands on. Fights, auto-clears and harvests happen where the party is. */
+  get partyAt(): string {
+    return this.party;
+  }
+
+  /** The walk the party would take to `to`, or null when the way is blocked or still in the fog. */
+  routeTo(to: string): string[] | null {
+    this.node(to);
+    return this.map.route(this.party, to);
+  }
+
+  /** Travel use case: the party walks along paths to `to`, through cleared nodes only. */
+  travel(to: string): string[] {
+    if (this.active) throw new Error('Cannot travel during a battle');
+    const route = this.routeTo(to);
+    if (!route) throw new Error(`No way from ${this.party} to ${to}`);
+    if (to !== this.party) this.ruin = null; // leaving a ruin ends the run
+    this.party = to;
+    return route;
   }
 
   get campId(): string {
@@ -244,6 +267,7 @@ export class GameSession {
   beginBattle(nodeId: string): PreparedBattle {
     if (this.active) throw new Error('A battle is already running');
     const node = this.node(nodeId);
+    if (this.party !== nodeId) throw new Error(`The party is at ${this.party}, not ${nodeId}`);
     if (!this.map.canFight(nodeId, this.now())) throw new Error(`Nothing to fight at ${nodeId}`);
     if (this.ruin && this.ruin.nodeId !== nodeId) this.ruin = null;
     if (node.kind === 'ruin' && !this.ruin) this.ruin = { nodeId, floor: 0, hpLeft: new Map() };
@@ -318,6 +342,7 @@ export class GameSession {
   /** Clears a Trivial node instantly for part of its loot (GDD 04). */
   autoClear(nodeId: string): { loot: Resources; revealed: string[] } {
     const info = this.nodeInfo(nodeId);
+    if (this.party !== nodeId) throw new Error(`The party is at ${this.party}, not ${nodeId}`);
     if (!info.canAutoClear) throw new Error(`Cannot auto-clear ${nodeId}`);
     const loot = scaleResources(info.loot, this.content.autoClearShare);
     const revealed = this.map.clear(nodeId, this.now());
@@ -330,6 +355,7 @@ export class GameSession {
   /** Collects what a secured resource site has produced. */
   harvest(nodeId: string): Resources {
     const node = this.node(nodeId);
+    if (this.party !== nodeId) throw new Error(`The party is at ${this.party}, not ${nodeId}`);
     const amount = this.harvestOf(node);
     this.map.harvest(nodeId, this.now());
     this.wallet.earn(amount);

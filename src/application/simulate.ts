@@ -38,6 +38,7 @@ export function simulateRun(content: GameContent, battles: number, seed = 1): Si
       i--;
       continue;
     }
+    if (session.partyAt !== nodeId) session.travel(nodeId);
     const prepared = session.beginBattle(nodeId);
     prepared.battle.runToEnd();
     const report = session.finishBattle();
@@ -46,7 +47,10 @@ export function simulateRun(content: GameContent, battles: number, seed = 1): Si
 
     for (const id of session.map.ids) {
       const harvest = session.nodeInfo(id).harvest;
-      if (harvest && harvest.gold + harvest.food > 0) session.harvest(id);
+      if (harvest && harvest.gold + harvest.food > 0 && session.routeTo(id)) {
+        session.travel(id);
+        session.harvest(id);
+      }
     }
     const hired: string[] = [];
     if (!ruinNode) {
@@ -87,11 +91,11 @@ export function simulateRun(content: GameContent, battles: number, seed = 1): Si
   return steps;
 }
 
-/** The weakest node never cleared, else the weakest one open again. */
+/** The weakest reachable node never cleared, else the weakest one open again. */
 function pickNode(session: GameSession): string | undefined {
   const open = session.map.ids
     .map((id) => session.nodeInfo(id))
-    .filter((info) => info.status.kind === 'open' && info.threat !== undefined)
+    .filter((info) => info.status.kind === 'open' && info.threat !== undefined && session.routeTo(info.node.id))
     .sort((a, b) => a.threat! - b.threat!);
   const fresh = open.filter((info) => info.status.kind === 'open' && info.status.firstClear);
   return (fresh[0] ?? open[0])?.node.id;
