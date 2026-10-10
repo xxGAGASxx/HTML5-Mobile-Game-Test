@@ -170,6 +170,13 @@ export class CampScene extends Scene {
       if (unit) {
         const token = this.portrait(unit.typeId, cell);
         token.setSelected(unit.id === this.selected);
+        // The type's training level in the tile's top-left corner; it rides along when the unit is dragged.
+        const level = new Text({
+          text: `Lv ${this.session.levels.of(unit.typeId)}`,
+          style: { fontFamily: FONT, fontSize: 11, fontWeight: 'bold', fill: COLORS.text, stroke: { color: COLORS.background, width: 3 } },
+        });
+        level.position.set(-cell / 2 + 6, -cell / 2 + 4);
+        token.addChild(level);
         token.position.set(x, y);
         token.eventMode = 'none';
         this.grid.addChild(token);
