@@ -3,9 +3,9 @@ import { Army, armyPower, catalogOf, formationBonus, unitPower, type UnitType } 
 
 const stats = { hp: 100, atk: 10, spd: 1, arm: 10, ranged: false };
 const catalog = catalogOf([
-  { id: 'guard', name: 'Guard', role: 'guard', icon: 'shield', stats },
-  { id: 'fighter', name: 'Fighter', role: 'fighter', icon: 'broadsword', stats },
-  { id: 'archer', name: 'Archer', role: 'shooter', icon: 'bow-arrow', stats: { ...stats, ranged: true } },
+  { id: 'guard', name: 'Guard', role: 'guard', stats },
+  { id: 'fighter', name: 'Fighter', role: 'fighter', stats },
+  { id: 'archer', name: 'Archer', role: 'shooter', stats: { ...stats, ranged: true } },
 ] satisfies UnitType[]);
 
 describe('Army', () => {

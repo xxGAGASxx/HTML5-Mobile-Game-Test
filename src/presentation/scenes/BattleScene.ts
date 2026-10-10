@@ -2,12 +2,14 @@ import { Container, Graphics, Rectangle, Sprite, Text, type FederatedPointerEven
 import type { BattleReport, GameSession } from '../../application/GameSession';
 import type { PreparedBattle } from '../../application/combat';
 import { RALLY_MAX, TICK_HZ, TICK_MS, TIME_LIMIT_TICKS, type Combatant, type CombatEvent } from '../../domain/combat';
+import { impactKind, PixelArt, pixelScaleFor, type ImpactKind, type UnitArtSpec } from '../art/PixelArt';
 import { icon, type Icons } from '../assets/icons';
+import type { PixelAssets } from '../assets/pixel';
 import { Tweens } from '../Tweens';
-import { COLORS, FONT, ROLE_COLORS } from '../theme';
+import { COLORS, FONT } from '../theme';
 import { Button } from '../ui/Button';
 import { ResourceBar } from '../ui/ResourceBar';
-import { UnitToken } from '../ui/UnitToken';
+import type { PixelUnit } from '../ui/PixelUnit';
 import { Scene } from './Scene';
 
 const BOTTOM_PANEL = 128;
@@ -23,9 +25,12 @@ export class BattleScene extends Scene {
   private readonly prepared: PreparedBattle;
   private readonly bar: ResourceBar;
   private readonly field = new Container();
-  private readonly fieldBg = new Graphics();
+  private readonly fieldBg = new Container();
+  private readonly units = new Container({ sortableChildren: true });
   private readonly fx = new Container();
-  private readonly tokens = new Map<string, UnitToken>();
+  private readonly tokens = new Map<string, PixelUnit>();
+  private readonly specs = new Map<string, UnitArtSpec>();
+  private readonly art: PixelArt;
   private readonly home = new Map<string, { x: number; y: number }>();
   private readonly dead = new Set<string>();
   private readonly hint: Text;
@@ -47,9 +52,11 @@ export class BattleScene extends Scene {
   constructor(
     private readonly session: GameSession,
     private readonly icons: Icons,
+    pixel: PixelAssets,
     private readonly onContinue: () => void,
   ) {
     super();
+    this.art = new PixelArt(pixel);
     this.prepared = session.beginBattle();
     this.bar = new ResourceBar(icons, this.tweens);
     this.bar.set(session.wallet.balance);
@@ -57,16 +64,16 @@ export class BattleScene extends Scene {
 
     this.field.eventMode = 'static';
     this.field.on('pointerdown', (e) => this.onFieldTap(e));
-    this.field.addChild(this.fieldBg);
+    this.field.addChild(this.fieldBg, this.units);
 
     for (const c of this.prepared.battle.combatants) {
       const enemy = c.spec.side === 'enemy';
-      const slug = enemy
-        ? (this.prepared.enemyTypes.get(c.spec.id)?.icon ?? 'pirate-skull')
-        : (session.playerCatalog.get(c.spec.typeId)?.icon ?? 'broadsword');
-      const token = new UnitToken(icons, slug, c.spec.role, enemy);
-      this.tokens.set(c.spec.id, token);
-      this.field.addChild(token);
+      const type = enemy ? this.prepared.enemyTypes.get(c.spec.id) : session.playerCatalog.get(c.spec.typeId);
+      const spec: UnitArtSpec = { typeId: type?.id ?? c.spec.typeId, role: c.spec.role, enemy };
+      const view = this.art.createUnit(spec, this.tweens);
+      this.specs.set(c.spec.id, spec);
+      this.tokens.set(c.spec.id, view);
+      this.units.addChild(view);
     }
 
     const label = { fontFamily: FONT, fontWeight: 'bold' as const };
@@ -96,7 +103,6 @@ export class BattleScene extends Scene {
       fontSize: 16,
       onTap: () => this.toggleSpeed(),
     });
-
     this.addChild(this.field, this.panel, this.meter, this.meterLabel, this.rallyButton, this.speedButton, this.bar, this.overlay);
     this.refreshHud();
   }
@@ -110,25 +116,21 @@ export class BattleScene extends Scene {
     const fieldH = height - top - BOTTOM_PANEL;
     this.field.position.set(0, top);
     this.field.hitArea = new Rectangle(0, 0, width, fieldH);
-    this.fieldBg.clear().rect(0, 0, width, fieldH).fill(COLORS.background);
-    const mid = fieldH / 2;
-    this.fieldBg.rect(0, 0, width, mid).fill({ color: COLORS.enemy, alpha: 0.18 });
-    this.fieldBg.moveTo(16, mid).lineTo(width - 16, mid).stroke({ width: 2, color: COLORS.muted, alpha: 0.3 });
+    const mid = Math.round(fieldH / 2);
 
     this.cell = Math.min(width / 3.6, fieldH / 6.8, 96);
     const gap = this.cell * 0.18;
     for (const c of this.prepared.battle.combatants) {
       const lane = c.spec.lane;
       const rowOffset = gap + this.cell * (c.spec.row + 0.5);
-      const x = width / 2 + (lane - 1) * this.cell * 1.08;
+      // Whole pixels, so the pixel art stays crisp.
+      const x = Math.round(width / 2 + (lane - 1) * this.cell * 1.08);
       // Front rows face each other across the middle line.
-      const y = c.spec.side === 'player' ? mid + rowOffset : mid - rowOffset;
+      const y = Math.round(c.spec.side === 'player' ? mid + rowOffset : mid - rowOffset);
       this.home.set(c.spec.id, { x, y });
-      const token = this.tokens.get(c.spec.id)!;
-      token.position.set(x, y);
-      token.setSize(this.cell * 0.78);
-      token.setHp(c.hp / c.maxHp);
     }
+    this.layoutUnits();
+    this.drawField(width, fieldH, mid);
     this.hint.position.set(width / 2, mid);
     this.clock.position.set(width - 12, mid - 14);
 
@@ -186,7 +188,7 @@ export class BattleScene extends Scene {
         this.playAttack(event.attackerId, event.targetId, event.damage, event.killed, event.rally);
         break;
       case 'captainHit':
-        this.playHit(event.targetId, event.damage, event.killed, COLORS.rally);
+        this.playHit(event.targetId, event.damage, event.killed, COLORS.rally, 'spark');
         break;
       case 'rallyFired':
         this.playRally(event.efficiency);
@@ -200,51 +202,51 @@ export class BattleScene extends Scene {
   private playAttack(attackerId: string, targetId: string, damage: number, killed: boolean, rally: boolean): void {
     const attacker = this.combatant(attackerId);
     const token = this.tokens.get(attackerId);
+    const spec = this.specs.get(attackerId);
     const from = this.home.get(attackerId);
     const to = this.home.get(targetId);
-    if (!attacker || !token || !from || !to) return;
+    if (!attacker || !token || !spec || !from || !to) return;
     const color = rally ? COLORS.rally : 0xffffff;
-
-    if (attacker.spec.stats.ranged) {
-      const shot = new Graphics().circle(0, 0, Math.max(4, this.cell * 0.07)).fill(ROLE_COLORS[attacker.spec.role]);
-      shot.position.set(from.x, from.y);
-      this.fx.addChild(shot);
-      this.tweens.play(shot, {
-        x: to.x,
-        y: to.y,
-        duration: 220,
-        ease: 'linear',
-        onComplete: () => {
-          shot.destroy();
-          this.playHit(targetId, damage, killed, color);
-        },
-      });
-      return;
-    }
-
-    // Melee: lunge a third of the way to the target and back; the hit lands at the peak.
-    const dx = (to.x - from.x) * 0.35;
-    const dy = (to.y - from.y) * 0.35;
-    this.tweens.play(token.body, { x: [0, dx, 0], y: [0, dy, 0], duration: 240, ease: 'outQuad' });
-    this.tweens.wait(110, () => this.playHit(targetId, damage, killed, color));
+    const ranged = attacker.spec.stats.ranged;
+    const kind = impactKind(spec, ranged);
+    const impactAt = token.attack(this.tweens, to.x - from.x, to.y - from.y, ranged);
+    const land = (): void => this.playHit(targetId, damage, killed, color, kind);
+    this.tweens.wait(impactAt, ranged ? () => this.fireProjectile(spec, from, to, land) : land);
   }
 
-  private playHit(targetId: string, damage: number, killed: boolean, color: number): void {
+  private fireProjectile(spec: UnitArtSpec, from: { x: number; y: number }, to: { x: number; y: number }, onArrive: () => void): void {
+    const shot = this.art.projectile(spec, pixelScaleFor(this.cell));
+    shot.position.set(from.x, from.y);
+    shot.rotation = Math.atan2(to.y - from.y, to.x - from.x);
+    this.fx.addChild(shot);
+    this.tweens.play(shot, {
+      x: to.x,
+      y: to.y,
+      duration: 220,
+      ease: 'linear',
+      onComplete: () => {
+        shot.destroy();
+        onArrive();
+      },
+    });
+  }
+
+  private playHit(targetId: string, damage: number, killed: boolean, color: number, kind: ImpactKind = 'spark'): void {
     const token = this.tokens.get(targetId);
     const target = this.combatant(targetId);
     const pos = this.home.get(targetId);
     if (!token || !target || !pos || this.dead.has(targetId)) return;
 
     token.setHp(target.hp / target.maxHp);
-    this.tweens.play(token.flashLayer, { alpha: [0.85, 0], duration: 160, ease: 'outQuad' });
-    this.tweens.play(token.body.scale, { x: [1.18, 1], y: [0.84, 1], duration: 200, ease: 'outBack' });
+    token.hit(this.tweens);
+    this.spawnEffect(kind, pos.x, pos.y);
 
     const popup = new Text({
       text: `-${damage}`,
       style: { fontFamily: FONT, fontSize: Math.round(14 + this.cell * 0.08), fontWeight: 'bold', fill: color, stroke: { color: 0x000000, width: 3 } },
     });
     popup.anchor.set(0.5);
-    popup.position.set(pos.x + (Math.random() - 0.5) * this.cell * 0.4, pos.y - token.radius);
+    popup.position.set(pos.x + (Math.random() - 0.5) * this.cell * 0.4, pos.y - token.top);
     this.fx.addChild(popup);
     this.tweens.play(popup, { y: popup.y - this.cell * 0.5, alpha: [1, 0], duration: 650, ease: 'outCubic', onComplete: () => popup.destroy() });
 
@@ -259,9 +261,33 @@ export class BattleScene extends Scene {
     const c = this.combatant(id);
     if (!token || !pos || !c) return;
     token.setHp(0);
-    this.tweens.play(token, { alpha: 0, duration: 380, ease: 'inQuad' });
-    this.tweens.play(token.scale, { x: 0.5, y: 0.5, duration: 380, ease: 'inQuad' });
+    token.die(this.tweens);
+    this.tweens.wait(500, () => this.spawnEffect('dust', pos.x, pos.y + token.top * 0.8));
     if (c.spec.side === 'enemy') this.flyCoins(pos.x, pos.y);
+  }
+
+  private spawnEffect(kind: ImpactKind | 'dust', x: number, y: number): void {
+    const effect = this.art.effect(kind, pixelScaleFor(this.cell), this.speed);
+    effect.position.set(x, y);
+    this.fx.addChild(effect);
+  }
+
+  private layoutUnits(): void {
+    const scale = pixelScaleFor(this.cell);
+    for (const c of this.prepared.battle.combatants) {
+      const view = this.tokens.get(c.spec.id);
+      const pos = this.home.get(c.spec.id);
+      if (!view || !pos) continue;
+      view.position.set(pos.x, pos.y);
+      view.zIndex = pos.y; // lower rows overlap the rows behind them
+      view.setSize(scale);
+      view.setHp(c.hp / c.maxHp);
+    }
+  }
+
+  private drawField(width: number, height: number, mid: number): void {
+    for (const child of this.fieldBg.removeChildren()) child.destroy({ children: true });
+    this.art.drawField(this.fieldBg, { width, height, mid, cell: this.cell, pixelScale: pixelScaleFor(this.cell), slots: [...this.home.values()] });
   }
 
   /** Coins arc from the fallen enemy to the gold counter (GDD 02 moment-to-moment loop). */
