@@ -28,7 +28,8 @@ export class Button extends Container {
     this.color = options.color ?? COLORS.rally;
     this.text = new Text({
       text: options.label,
-      style: { fontFamily: FONT, fontSize: options.fontSize ?? 18, fontWeight: 'bold', fill: COLORS.background },
+      // Padding keeps bold glyphs that overhang their measured box (some phone fonts) from being clipped.
+      style: { fontFamily: FONT, fontSize: options.fontSize ?? 18, fontWeight: 'bold', fill: COLORS.background, padding: 4 },
     });
     this.text.anchor.set(0.5);
     this.addChild(this.bg);
@@ -88,10 +89,14 @@ export class Button extends Container {
       .fill(this.isEnabled ? this.color : COLORS.disabled)
       .stroke({ width: 2, color: 0x000000, alpha: 0.35 });
     this.text.style.fill = this.isEnabled ? COLORS.background : COLORS.muted;
+    // Shrink the label (never grow it) when a wide phone font would push it past the edges.
+    this.text.scale.set(1);
+    const size = this.iconSprite ? this.h * 0.55 : 0;
+    const gap = this.iconSprite ? 8 : 0;
+    const room = w - 20 - size - gap;
+    if (this.text.width > room) this.text.scale.set(Math.max(0.5, room / this.text.width));
     if (this.iconSprite) {
-      const size = this.h * 0.55;
       this.iconSprite.width = this.iconSprite.height = size;
-      const gap = 8;
       const total = size + gap + this.text.width;
       this.iconSprite.x = -total / 2 + size / 2;
       this.text.x = this.iconSprite.x + size / 2 + gap + this.text.width / 2;

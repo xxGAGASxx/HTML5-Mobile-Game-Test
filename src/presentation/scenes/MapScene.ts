@@ -191,6 +191,7 @@ export class MapScene extends Scene {
     this.bottom.clear().rect(0, by, width, BOTTOM_BAR).fill(COLORS.panel).rect(0, by, width, 2).fill(COLORS.panelLight);
     this.campButton.position.set(width - PAD - this.campButton.buttonWidth / 2, by + BOTTOM_BAR / 2);
     this.progress.position.set(PAD, by + BOTTOM_BAR / 2);
+    this.fitProgress();
     this.zoomHint.position.set(width / 2, ResourceBar.HEIGHT + 24);
 
     if (firstLayout) {
@@ -286,6 +287,13 @@ export class MapScene extends Scene {
     }
     if (e.type !== 'pointerup') return;
     this.onTap(e.global.x, e.global.y);
+  }
+
+  /** Shrinks the progress lines on narrow screens so they never run under the Camp button. */
+  private fitProgress(): void {
+    this.progress.scale.set(1);
+    const room = this.campButton.x - this.campButton.buttonWidth / 2 - PAD - 8;
+    if (room > 0 && this.progress.width > room) this.progress.scale.set(room / this.progress.width);
   }
 
   // --- movement --------------------------------------------------------------------------------
@@ -557,6 +565,7 @@ export class MapScene extends Scene {
     }
     const region = this.session.map.regionCleared ? 'cleared!' : `${cleared}/${total} cleared`;
     this.progress.text = `Wreck Coast · ${region}\nArmy Power ${formatNumber(this.session.power)}`;
+    this.fitProgress();
     this.bar.set(this.session.wallet.balance);
     this.bar.setCaption(this.session.map.regionCleared ? 'Region cleared' : '');
     this.renderCard();
